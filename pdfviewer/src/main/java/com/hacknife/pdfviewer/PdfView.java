@@ -116,6 +116,35 @@ public class PdfView extends ViewGroup {
 //        LogZ.log("scale:%f , x:%f ,y:%f", configurator.scale, pointF.x, pointF.y);
 
         if (distance > this.distance) {//放大
+            if (distance > displayCell.get(configurator.pageNumber).size.height) {
+                //把顶部的页面放大没了
+                this.distance = distance - this.distance;
+                LogZ.log("放大回收顶部=======%d", configurator.pageNumber);
+                Cell rubbish = displayCell.remove(configurator.pageNumber);
+                removeView(rubbish);
+                cache.holdCell(rubbish, configurator.pageNumber, PDFCore.MODE.WIDTH);
+                configurator.pageNumber--;
+            } else {
+                this.distance = distance;
+            }
+            //计算最后一个超出cell布局的高度 bottomRemaining
+            int bottomRemaining = (int) -this.distance;
+            Cell bottomRemainingCell = null;
+            int bottomRemainingPage = configurator.pageNumber;
+            for (; bottomRemaining < packSize.height && bottomRemainingPage < pageCount; bottomRemainingPage++) {
+                Cell cell = displayCell.get(bottomRemainingPage);
+                bottomRemaining += cell.size.height;
+                bottomRemainingCell = cell;
+            }
+            bottomRemaining = Math.abs(bottomRemaining - packSize.height);
+            bottomRemainingPage--;//循环里面++
+
+            if (bottomRemaining > bottomRemainingCell.size.height) {
+                LogZ.log("放大回收底部=======%d", bottomRemainingPage);
+                Cell rubbish = displayCell.remove(bottomRemainingPage);
+                removeView(rubbish);
+                cache.holdCell(rubbish, bottomRemainingPage, PDFCore.MODE.WIDTH);
+            }
 
         } else {//缩小
 
@@ -155,7 +184,7 @@ public class PdfView extends ViewGroup {
                 }
             }
             if (bottomRemaining - distanceY > bottomRemainingCell.size.height) {
-                LogZ.log("回收1=======%d", bottomRemainingPage);
+                LogZ.log("回收底部=======%d", bottomRemainingPage);
                 Cell rubbish = displayCell.remove(bottomRemainingPage);
                 removeView(rubbish);
                 cache.holdCell(rubbish, configurator.pageNumber - 1, PDFCore.MODE.WIDTH);
@@ -168,7 +197,7 @@ public class PdfView extends ViewGroup {
             }
             float remaining = relDistance - displayCell.get(configurator.pageNumber).size.height;
             if (remaining > 0) {
-                LogZ.log("回收2=======%d", configurator.pageNumber);
+                LogZ.log("回收顶部=======%d", configurator.pageNumber);
                 Cell rubbish = displayCell.remove(configurator.pageNumber);
                 removeView(rubbish);
                 cache.holdCell(rubbish, bottomRemainingPage + 1, PDFCore.MODE.WIDTH);
