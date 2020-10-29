@@ -18,7 +18,13 @@ public class SizeF {
     public SizeF widthScaleTo(float width) {
         return scale(width / this.width);
     }
+
     public SizeF heightScaleTo(float height) {
         return scale(height / this.height);
+    }
+
+
+    public Size toSize() {
+        return new Size((int) width, (int) height);
     }
 }

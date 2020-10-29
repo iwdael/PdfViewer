@@ -15,13 +15,18 @@
  */
 package com.hacknife.pdfviewer;
 
+import android.annotation.SuppressLint;
 import android.graphics.PointF;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.view.animation.DecelerateInterpolator;
 
-import com.hacknife.pdfviewer.model.SizeF;
+import androidx.core.view.ViewCompat;
+
+import com.hacknife.pdfviewer.helper.Scroller;
+
 
 import static com.hacknife.pdfviewer.PdfView.Configurator.SCALE_MAX;
 import static com.hacknife.pdfviewer.PdfView.Configurator.SCALE_MIN;
@@ -30,19 +35,21 @@ import static com.hacknife.pdfviewer.PdfView.Configurator.SCALE_MIN;
  * This Manager takes care of moving the PdfView,
  * set its zoom track user actions.
  */
-class DragPinchManager implements GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener, ScaleGestureDetector.OnScaleGestureListener, View.OnTouchListener {
+@SuppressLint("ClickableViewAccessibility")
+class DragPinchManager implements GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener, ScaleGestureDetector.OnScaleGestureListener, View.OnTouchListener, Runnable {
 
     private PdfView pdfView;
-
+    private Scroller scroller;
     private GestureDetector gestureDetector;
     private ScaleGestureDetector scaleGestureDetector;
-
+    private boolean isScaling = false;
 
     DragPinchManager(PdfView pdfView) {
         this.pdfView = pdfView;
         gestureDetector = new GestureDetector(pdfView.getContext(), this);
         scaleGestureDetector = new ScaleGestureDetector(pdfView.getContext(), this);
         pdfView.setOnTouchListener(this);
+        scroller = new Scroller(pdfView.getContext(), new DecelerateInterpolator());
     }
 
 
@@ -78,7 +85,8 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
 
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-        return false;
+        if (isScaling) return true;
+        return pdfView.moveByRelative(distanceX, distanceY);
     }
 
     @Override
@@ -88,7 +96,10 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        return false;
+        scroller.finish();
+        scroller.fling(0, 0, (int) velocityX, (int) velocityY, Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        ViewCompat.postOnAnimation(pdfView, this);
+        return true;
     }
 
     @Override
@@ -108,18 +119,32 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
 
     @Override
     public boolean onScaleBegin(ScaleGestureDetector detector) {
+        isScaling = true;
         return true;
     }
 
     @Override
     public void onScaleEnd(ScaleGestureDetector detector) {
-
+        isScaling = false;
     }
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
+        scroller.finish();
         boolean retVal = scaleGestureDetector.onTouchEvent(event);
         retVal = gestureDetector.onTouchEvent(event) || retVal;
         return retVal;
+    }
+
+
+    @Override
+    public void run() {
+        if (scroller.computeScrollOffset()) {
+            int offsetX = scroller.getOffsetX();
+            int offsetY = scroller.getOffsetY();
+            pdfView.moveByRelative(offsetX, offsetY);
+            ViewCompat.postOnAnimation(pdfView, this);
+
+        }
     }
 }

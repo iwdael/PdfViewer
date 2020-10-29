@@ -28,6 +28,8 @@ public class CoreActivity extends AppCompatActivity {
             String path = uri.getPath();
             view.formPath(path)
                     .rollingDirection(Direction.HORIZONTAL)
+                    .pageNumber(2)
+//                    .scale(2)
                     .build();
         }
 

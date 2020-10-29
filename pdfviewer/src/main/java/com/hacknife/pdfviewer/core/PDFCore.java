@@ -16,7 +16,7 @@ import com.hacknife.pdfviewer.model.SizeF;
 
 public class PDFCore {
 
-    private Document doc;
+    private Document pdfDocument;
     private int pageCount = -1;
     private int currentPage;
     private Page page;
@@ -25,27 +25,25 @@ public class PDFCore {
 
 
     public PDFCore(String filename) {
-        this.doc = Document.openDocument(filename);
-        this.pageCount = this.doc.countPages();
-
+        this.pdfDocument = Document.openDocument(filename);
+        this.pageCount = this.pdfDocument.countPages();
         this.currentPage = -1;
     }
 
     public PDFCore(byte[] buffer, String magic) {
-        this.doc = Document.openDocument(buffer, magic);
-        this.pageCount = this.doc.countPages();
-
+        this.pdfDocument = Document.openDocument(buffer, magic);
+        this.pageCount = this.pdfDocument.countPages();
         this.currentPage = -1;
     }
 
     public PDFCore(SeekableInputStream stream) {
-        this.doc = Document.openDocument(stream, null);
-        this.pageCount = this.doc.countPages();
+        this.pdfDocument = Document.openDocument(stream, null);
+        this.pageCount = this.pdfDocument.countPages();
         this.currentPage = -1;
     }
 
     public String getTitle() {
-        return this.doc.getMetaData("info:Title");
+        return this.pdfDocument.getMetaData("info:Title");
     }
 
     public int pageCount() {
@@ -53,7 +51,7 @@ public class PDFCore {
     }
 
     public synchronized boolean isReflowable() {
-        return this.doc.isReflowable();
+        return this.pdfDocument.isReflowable();
     }
 
 
@@ -70,7 +68,7 @@ public class PDFCore {
                 this.page.destroy();
             }
 
-            this.page = this.doc.loadPage(pageNum);
+            this.page = this.pdfDocument.loadPage(pageNum);
             Rect b = this.page.getBounds();
             this.pageWidth = b.x1 - b.x0;
             this.pageHeight = b.y1 - b.y0;
@@ -88,8 +86,8 @@ public class PDFCore {
         if (this.page != null) this.page.destroy();
         this.page = null;
 
-        if (this.doc != null) this.doc.destroy();
-        this.doc = null;
+        if (this.pdfDocument != null) this.pdfDocument.destroy();
+        this.pdfDocument = null;
     }
 
     public synchronized void drawPage(Bitmap bm, int pageNum, int pageSize, MODE mode, float offsetX, float offsetY, float scale) {
@@ -108,14 +106,14 @@ public class PDFCore {
     }
 
     public synchronized boolean needsPassword() {
-        return this.doc.needsPassword();
+        return this.pdfDocument.needsPassword();
     }
 
     public synchronized boolean authenticatePassword(String password) {
-        return this.doc.authenticatePassword(password);
+        return this.pdfDocument.authenticatePassword(password);
     }
 
-    public static enum MODE {
+    public   enum MODE {
         WIDTH, HEIGHT
     }
 }

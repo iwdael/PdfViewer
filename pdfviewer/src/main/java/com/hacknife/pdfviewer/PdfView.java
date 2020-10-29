@@ -1,20 +1,14 @@
 package com.hacknife.pdfviewer;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.graphics.PointF;
-import android.graphics.Rect;
-import android.graphics.RectF;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
+import android.view.ViewGroup;
 
 import com.artifex.mupdf.fitz.SeekableInputStream;
 
 import com.hacknife.pdfviewer.core.PDFCore;
-import com.hacknife.pdfviewer.helper.CellHelper;
+
 import com.hacknife.pdfviewer.helper.LogZ;
 import com.hacknife.pdfviewer.listener.OnDoubleTapListener;
 import com.hacknife.pdfviewer.listener.OnDrawListener;
@@ -24,28 +18,29 @@ import com.hacknife.pdfviewer.listener.OnPageChangeListener;
 import com.hacknife.pdfviewer.listener.OnPageErrorListener;
 import com.hacknife.pdfviewer.listener.OnPageScrollListener;
 import com.hacknife.pdfviewer.listener.OnTapListener;
-import com.hacknife.pdfviewer.model.BmPack;
 import com.hacknife.pdfviewer.model.Cell;
+import com.hacknife.pdfviewer.model.CacheCell;
 import com.hacknife.pdfviewer.model.Direction;
+import com.hacknife.pdfviewer.model.Size;
 
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
-import static com.hacknife.pdfviewer.model.BmPack.SPACE;
 
-
-public class PdfView extends View {
+public class PdfView extends ViewGroup {
 
     protected Configurator configurator;
-    private int width;
-    private int height;
-    private Cell cell;
-    private Paint bmPaint;
-    public boolean loaded = false;
-    private float offsetX = 0f;
-    private float offsetY = 0f;
     private DragPinchManager dragPinchManager;
-    private boolean scaling = false;
+    private CacheCell cache;
+    private Map<Integer, Cell> displayCell;
+    private int pageCount;
+    private Size packSize;
+    private float offset = 0f;
+    private float distance = 0f;
+    private float transverseLength = 0f; //页面放大后，非翻滚页面的距离
 
     public PdfView(Context context) {
         this(context, null);
@@ -57,66 +52,45 @@ public class PdfView extends View {
 
     public PdfView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        bmPaint = new Paint();
-        bmPaint.setAntiAlias(true);
         dragPinchManager = new DragPinchManager(this);
+        displayCell = new HashMap<>();
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        if (configurator == null) return;
+        for (int page = configurator.pageNumber, height = (int) -distance; height < packSize.height && page < pageCount; page++) {
+            Cell cell = displayCell.get(page);
+            cell.layoutKeep((int) -offset, height, (int) -offset + cell.size.width, height + cell.size.height);
+            height += cell.size.height;
+        }
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        width = w;
-        height = h;
-        if (configurator != null) configurator.build();
-    }
-
-    private void createCell() {
-        if (width == 0 || height == 0) return;
-        int cellW = CellHelper.calculateCellSize(configurator.bmPack.col - SPACE, width);
-        int cellH = CellHelper.calculateCellSize(configurator.bmPack.row - SPACE, height);
-        configurator.bmPack.width = cellW;
-        configurator.bmPack.height = cellH;
-        Log.v("dzq", "cellW:" + cellW + " , cellH:" + cellH);
-        cell = CellHelper.createCells(configurator.bmPack.col, configurator.bmPack.row, cellW, cellH);
-        loadPdfToCell(cell);
-    }
-
-
-    private void loadPdfToCell(Cell cell) {
-        loaded = false;
-        CellHelper.loadPdfToCell(configurator, cell, 0, 0, 0, configurator.scale, width, height, true);
-        loaded = true;
-        postInvalidate();
-    }
-
-    private void drawRow(Canvas canvas, Cell cellR, float dH) {
-        float dW = 0f;
-        float cellW = configurator.bmPack.width;
-        float cellH = configurator.bmPack.height;
-        while (dW < width) {
-            Rect src = new Rect(0, 0, (int) cellW, (int) cellH);
-            Rect dest = new Rect((int) dW, (int) dH, (int) (dW + cellW), (int) (dH + cellH));
-            canvas.drawBitmap(cellR.bitmap, src, dest, bmPaint);
-            dW = dW + cellW;
-            cellR = cellR.next(Direction.HORIZONTAL);
+        if (w == 0 || h == 0) return;
+        packSize = new Size(w, h);
+        if (configurator != null) {
+            configurator.packSize.width = w;
+            configurator.packSize.height = h;
+            configurator.build();
         }
+
     }
 
-    public void drawCells(Canvas canvas, Cell cellC) {
-        float dH = 0;
-        float cellH = configurator.bmPack.height;
-        while (dH < height) {
-            drawRow(canvas, cellC, dH);
-            dH = dH + cellH;
-            cellC = cellC.next(Direction.VERTICAL);
+
+    private void createCell(Configurator configurator) {
+        if (packSize == null) return;
+        transverseLength = (configurator.scale - 1f) * packSize.width;
+        pageCount = configurator.core.pageCount();
+        cache = new CacheCell(getContext(), this.configurator);
+        for (int page = configurator.pageNumber, height = 0; height < packSize.height && page < pageCount; page++) {
+            Cell cell = cache.achieveCell(page, PDFCore.MODE.WIDTH);
+            addView(cell);
+            displayCell.put(page, cell);
+            height += cell.size.height;
         }
-    }
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        if (cell == null) return;
-        if (!loaded) return;
-        drawCells(canvas, cell);
     }
 
     public Configurator formFile(File file) {
@@ -132,8 +106,80 @@ public class PdfView extends View {
     }
 
     protected void scaleTo(float scale, PointF pointF) {
-        scaling = true;
-        configurator.scale *= scale;
+        offset = (offset / configurator.scale + pointF.x / configurator.scale) * scale - pointF.x;
+        float distance = (this.distance / configurator.scale + pointF.y / configurator.scale) * scale - pointF.y;
+        configurator.scale = scale;
+        transverseLength = (configurator.scale - 1f) * packSize.width;
+        for (Map.Entry<Integer, Cell> entry : displayCell.entrySet()) {
+            entry.getValue().reMeasure();
+        }
+//        LogZ.log("scale:%f , x:%f ,y:%f", configurator.scale, pointF.x, pointF.y);
+
+        if (distance > this.distance) {//放大
+
+        } else {//缩小
+
+        }
+
+        requestLayout();
+    }
+
+    public boolean moveByRelative(float distanceX, float distanceY) {
+        float relOffset = offset + distanceX;
+        float relDistance = distance + distanceY;
+        if (relOffset < 0) relOffset = 0;
+        else if (relOffset > transverseLength) relOffset = transverseLength;
+
+        //计算最后一个超出cell布局的高度 bottomRemaining
+        int bottomRemaining = (int) -distance;
+        Cell bottomRemainingCell = null;
+        int bottomRemainingPage = configurator.pageNumber;
+        for (; bottomRemaining < packSize.height && bottomRemainingPage < pageCount; bottomRemainingPage++) {
+            Cell cell = displayCell.get(bottomRemainingPage);
+            bottomRemaining += cell.size.height;
+            bottomRemainingCell = cell;
+        }
+        bottomRemaining = Math.abs(bottomRemaining - packSize.height);
+        bottomRemainingPage--;//循环里面++
+
+        if (distanceY < 0) {
+            if (relDistance < 0) {
+                if (configurator.pageNumber > 0) {
+                    configurator.pageNumber--;
+                    Cell cell = cache.achieveCell(configurator.pageNumber, PDFCore.MODE.WIDTH);
+                    addView(cell);
+                    displayCell.put(configurator.pageNumber, cell);
+                    relDistance = cell.size.height + relDistance;
+                } else {
+                    relDistance = 0f;
+                }
+            }
+            if (bottomRemaining - distanceY > bottomRemainingCell.size.height) {
+                LogZ.log("回收1=======%d", bottomRemainingPage);
+                Cell rubbish = displayCell.remove(bottomRemainingPage);
+                removeView(rubbish);
+                cache.holdCell(rubbish, configurator.pageNumber - 1, PDFCore.MODE.WIDTH);
+            }
+        } else if (distanceY > 0) {
+            if (bottomRemaining - distanceY < 0) {
+                Cell cell = cache.achieveCell(bottomRemainingPage + 1, PDFCore.MODE.WIDTH);
+                addView(cell);
+                displayCell.put(bottomRemainingPage + 1, cell);
+            }
+            float remaining = relDistance - displayCell.get(configurator.pageNumber).size.height;
+            if (remaining > 0) {
+                LogZ.log("回收2=======%d", configurator.pageNumber);
+                Cell rubbish = displayCell.remove(configurator.pageNumber);
+                removeView(rubbish);
+                cache.holdCell(rubbish, bottomRemainingPage + 1, PDFCore.MODE.WIDTH);
+                configurator.pageNumber++;
+                relDistance = remaining;
+            }
+        }
+        offset = relOffset;
+        distance = relDistance;
+        requestLayout();
+        return true;
     }
 
     public static class Configurator {
@@ -156,21 +202,47 @@ public class PdfView extends View {
         protected int scaleMin = SCALE_MIN;
         protected int scaleMax = SCALE_MAX;
         private boolean scaleEnable = true;
+        private boolean transverseEnable = true;
         private Direction rollingDirection = Direction.VERTICAL;
         private PDFCore core;
         private float centerX = 0.5f;
         private float centerY = 0.5f;
         protected float scale = 1f;
-        private BmPack bmPack = new BmPack(10, 10);
+        protected Size packSize = new Size(0, 0);
+        protected int pageNumber;
+        protected float space;
+        protected int spaceColor;
 
-
-        public Configurator bmPack(BmPack bmPack) {
-            this.bmPack = bmPack;
+        public Configurator spaceColor(int spaceColor) {
+            this.spaceColor = spaceColor;
             return this;
         }
 
-        public BmPack bmPack() {
-            return bmPack;
+        public Configurator space(float space) {
+            this.space = space;
+            return this;
+        }
+
+        public Configurator pageNumber(int pageNumber) {
+            this.pageNumber = pageNumber;
+            return this;
+        }
+
+        public int pageNumber() {
+            return pageNumber;
+        }
+
+        public Size packSize() {
+            return packSize;
+        }
+
+        public float scale() {
+            return scale;
+        }
+
+        public Configurator scale(float scale) {
+            this.scale = scale;
+            return this;
         }
 
         public Configurator centerX(float centerX) {
@@ -261,8 +333,8 @@ public class PdfView extends View {
         }
 
         public void build() {
+            view.createCell(this);
             view.configurator = this;
-            view.createCell();
         }
     }
 
