@@ -2,11 +2,9 @@ package com.hacknife.pdfviewer.core;
 
 import android.graphics.Bitmap;
 
-import com.artifex.mupdf.fitz.Cookie;
-import com.artifex.mupdf.fitz.DisplayList;
 import com.artifex.mupdf.fitz.Document;
 import com.artifex.mupdf.fitz.Matrix;
-import com.artifex.mupdf.fitz.Outline;
+
 import com.artifex.mupdf.fitz.Page;
 import com.artifex.mupdf.fitz.Rect;
 import com.artifex.mupdf.fitz.RectI;
@@ -42,16 +40,9 @@ public class PDFCore {
         this.currentPage = -1;
     }
 
-    public String getTitle() {
-        return this.pdfDocument.getMetaData("info:Title");
-    }
 
     public int pageCount() {
-        return this.pageCount;
-    }
-
-    public synchronized boolean isReflowable() {
-        return this.pdfDocument.isReflowable();
+        return 10;
     }
 
 
@@ -82,10 +73,8 @@ public class PDFCore {
     }
 
     public synchronized void close() {
-
         if (this.page != null) this.page.destroy();
         this.page = null;
-
         if (this.pdfDocument != null) this.pdfDocument.destroy();
         this.pdfDocument = null;
     }
@@ -113,7 +102,7 @@ public class PDFCore {
         return this.pdfDocument.authenticatePassword(password);
     }
 
-    public   enum MODE {
+    public enum MODE {
         WIDTH, HEIGHT
     }
 }

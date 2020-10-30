@@ -25,6 +25,7 @@ import android.view.animation.DecelerateInterpolator;
 
 import androidx.core.view.ViewCompat;
 
+import com.hacknife.pdfviewer.helper.Logger;
 import com.hacknife.pdfviewer.helper.Scroller;
 
 
@@ -37,7 +38,7 @@ import static com.hacknife.pdfviewer.PdfView.Configurator.SCALE_MIN;
  */
 @SuppressLint("ClickableViewAccessibility")
 class DragPinchManager implements GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener, ScaleGestureDetector.OnScaleGestureListener, View.OnTouchListener, Runnable {
-
+    public static final String TAG = "Gesture";
     private PdfView pdfView;
     private Scroller scroller;
     private GestureDetector gestureDetector;
@@ -60,7 +61,9 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
 
     @Override
     public boolean onDoubleTap(MotionEvent e) {
-        return false;
+        Logger.t(TAG).log("onDoubleTap");
+        pdfView.onDoubleTap(e);
+        return true;
     }
 
     @Override
@@ -80,18 +83,21 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
 
     @Override
     public boolean onSingleTapUp(MotionEvent e) {
-        return false;
+        Logger.t(TAG).log("onSingleTapUp");
+        pdfView.onSingleTap(e);
+        return true;
     }
 
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
         if (isScaling) return true;
-        return pdfView.moveByRelative(distanceX, distanceY);
+        return pdfView.onScroll(distanceX, distanceY);
     }
 
     @Override
     public void onLongPress(MotionEvent e) {
-
+        Logger.t(TAG).log("onLongPress");
+        pdfView.onLongPress(e);
     }
 
     @Override
@@ -113,7 +119,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
         } else if (wantedZoom > maxZoom) {
             dr = maxZoom / pdfView.configurator.scale;
         }
-        pdfView.scaleTo(pdfView.configurator.scale * dr, new PointF(detector.getFocusX(), detector.getFocusY()));
+        pdfView.onScale(pdfView.configurator.scale * dr, new PointF(detector.getFocusX(), detector.getFocusY()));
         return true;
     }
 
@@ -126,6 +132,7 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
     @Override
     public void onScaleEnd(ScaleGestureDetector detector) {
         isScaling = false;
+        pdfView.onScaleEnd();
     }
 
     @Override
@@ -142,9 +149,10 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
         if (scroller.computeScrollOffset()) {
             int offsetX = scroller.getOffsetX();
             int offsetY = scroller.getOffsetY();
-            pdfView.moveByRelative(offsetX, offsetY);
+            pdfView.onScroll(offsetX, offsetY);
             ViewCompat.postOnAnimation(pdfView, this);
-
+        }else {
+            Logger.t(TAG).log("fling finish");
         }
     }
 }

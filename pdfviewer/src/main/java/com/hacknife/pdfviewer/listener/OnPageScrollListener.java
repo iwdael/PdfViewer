@@ -3,7 +3,5 @@ package com.hacknife.pdfviewer.listener;
 
 
 public interface OnPageScrollListener {
-
-
-    void onPageScrolled(int page, float positionOffset);
+    void onPageScrolled(boolean isScrolled, int pageNumber, float distance, float distanceX, float distanceY);
 }

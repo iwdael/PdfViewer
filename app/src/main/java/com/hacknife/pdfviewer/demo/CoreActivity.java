@@ -2,12 +2,14 @@ package com.hacknife.pdfviewer.demo;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.hacknife.pdfviewer.listener.OnLongPressListener;
 import com.hacknife.pdfviewer.model.Direction;
 import com.hacknife.pdfviewer.PdfView;
 
@@ -19,7 +21,7 @@ public class CoreActivity extends AppCompatActivity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        PdfView view = new PdfView(this);
+        final PdfView view = new PdfView(this);
 
         setContentView(view, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
@@ -28,8 +30,16 @@ public class CoreActivity extends AppCompatActivity {
             String path = uri.getPath();
             view.formPath(path)
                     .rollingDirection(Direction.HORIZONTAL)
-                    .pageNumber(2)
+//                    .pageNumber(2)
 //                    .scale(2)
+                    .space(50)
+                    .transverseEnable(false)
+                    .onLongPress(new OnLongPressListener() {
+                        @Override
+                        public void onLongPress(MotionEvent e) {
+                            view.getConfigurator().transverseEnable(!view.getConfigurator().transverseEnable());
+                        }
+                    })
                     .build();
         }
 

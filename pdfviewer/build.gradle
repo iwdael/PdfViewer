@@ -1,19 +1,24 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.novoda.bintray-release'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.3"
-
+    compileSdkVersion buildConfig.compileSdkVersion
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 29
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion buildConfig.minSdkVersion
+        targetSdkVersion buildConfig.targetSdkVersion
+        versionCode buildConfig.versionCode
+        versionName buildConfig.versionName
     }
 }
-
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.2.0'
     api 'com.artifex.mupdf:viewer:1.18.0'
-    api 'androidx.recyclerview:recyclerview:1.2.0-alpha06'
+}
+
+publish {
+    userOrg = 'hacknife'
+    groupId = 'com.hacknife'
+    artifactId = 'pdfviewer'
+    publishVersion = '1.0.0'
+    desc = ''
+    website = 'https://github.com/hacknife/pdfviewer'
 }
