@@ -1,33 +1,37 @@
-package com.hacknife.pdfviewer.model;
+package com.hacknife.pdfviewer.cache;
 
-import android.content.Context;
-
+import com.hacknife.pdfviewer.Configurator;
 import com.hacknife.pdfviewer.PdfView;
 import com.hacknife.pdfviewer.core.PDFCore;
-
+import com.hacknife.pdfviewer.helper.Logger;
+import com.hacknife.pdfviewer.model.Cell;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class Cache {
+public class CellCache {
+    public static final String TAG = "cell_cache";
     private PdfView context;
-    private PdfView.Configurator configurator;
+    private Configurator configurator;
     private Map<Integer, Cell> cellMap;
 
-    public Cache(PdfView context, PdfView.Configurator configurator) {
+
+    public CellCache(PdfView context, Configurator configurator) {
         this.context = context;
         this.configurator = configurator;
         this.cellMap = new HashMap<>();
     }
 
     public Cell achieveCell(int page, PDFCore.MODE mode) {
-        if (cellMap.containsKey(page))
+        if (cellMap.containsKey(page)) {
+            Logger.t(TAG).log("从缓存读取:%d , mode:%s", page, mode.toString());
             return cellMap.get(page).loadCell(page, mode);
-        else
+        } else
             return new Cell(context, configurator).loadCell(page, mode);
     }
 
     public void holdCell(Cell cell, int page, PDFCore.MODE mode) {
+        Logger.t(TAG).log("保存到缓存:%d , mode:%s", page, mode.toString());
         if (!cellMap.containsKey(page) && page >= 0 && page < configurator.core().pageCount()) {
             cell.loadCell(page, mode);
             cellMap.put(page, cell);

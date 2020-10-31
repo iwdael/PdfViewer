@@ -29,8 +29,8 @@ import com.hacknife.pdfviewer.helper.Logger;
 import com.hacknife.pdfviewer.helper.Scroller;
 
 
-import static com.hacknife.pdfviewer.PdfView.Configurator.SCALE_MAX;
-import static com.hacknife.pdfviewer.PdfView.Configurator.SCALE_MIN;
+import static com.hacknife.pdfviewer.Configurator.SCALE_MAX;
+import static com.hacknife.pdfviewer.Configurator.SCALE_MIN;
 
 /**
  * This Manager takes care of moving the PdfView,

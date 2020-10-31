@@ -70,7 +70,9 @@ public class PDFCore {
     public synchronized SizeF getPageSize(int pageNum) {
         this.pageTo(pageNum);
         return new SizeF(this.pageWidth, this.pageHeight);
+//        return new SizeF(1, 1);
     }
+
 
     public synchronized void close() {
         if (this.page != null) this.page.destroy();

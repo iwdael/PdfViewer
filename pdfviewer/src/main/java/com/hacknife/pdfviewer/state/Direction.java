@@ -1,4 +1,4 @@
-package com.hacknife.pdfviewer.model;
+package com.hacknife.pdfviewer.state;
 
 public enum Direction {
     HORIZONTAL,VERTICAL

@@ -7,6 +7,7 @@ import android.graphics.Rect;
 
 import androidx.annotation.NonNull;
 
+import com.hacknife.pdfviewer.Configurator;
 import com.hacknife.pdfviewer.core.PDFCore;
 import com.hacknife.pdfviewer.helper.Logger;
 import com.hacknife.pdfviewer.loader.CellLoader;
@@ -18,7 +19,7 @@ import com.hacknife.pdfviewer.widget.Space;
 
 public class Cell extends androidx.appcompat.widget.AppCompatImageView implements OnCellLoaderListener {
 
-    private PdfView.Configurator configurator;
+    private Configurator configurator;
     private CellLoader cellLoader;
     private PDFCore core;
     public int pageNumber = -1;
@@ -30,15 +31,14 @@ public class Cell extends androidx.appcompat.widget.AppCompatImageView implement
     private Size willBitmapSize = new Size(0, 0);
     private PdfView context;
 
-    public Cell(@NonNull PdfView context, PdfView.Configurator configurator) {
+    public Cell(@NonNull PdfView context, Configurator configurator) {
         super(context.getContext());
         this.configurator = configurator;
         this.context = context;
         this.core = configurator.core();
         cellLoader = new CellLoader(this);
-        space = new Space(context );
+        space = new Space(context);
         space.setBackgroundColor(configurator.spaceColor());
-        setScaleType(ScaleType.CENTER_CROP);
     }
 
     public boolean reMeasure() {
@@ -63,15 +63,17 @@ public class Cell extends androidx.appcompat.widget.AppCompatImageView implement
     public Cell loadCell(int pageNumber, PDFCore.MODE mode) {
         this.pageMode = mode;
         this.reMeasure();
-        if ((!bitmapSize.equals(willBitmapSize)) || (pageNumber != this.pageNumber))
-            this.cellLoader.load(Bitmap.createBitmap(this.willBitmapSize.width, this.willBitmapSize.height, Bitmap.Config.ARGB_8888));
+//        if ((!bitmapSize.equals(willBitmapSize)) || (pageNumber != this.pageNumber))
+//            this.cellLoader.load(Bitmap.createBitmap(this.willBitmapSize.width, this.willBitmapSize.height, Bitmap.Config.ARGB_8888));
+        setImageBitmap(configurator.thumbnailCache().getPage(pageNumber));
         this.pageNumber = pageNumber;
         return this;
     }
 
     public void reload() {
-        if (!bitmapSize.equals(willBitmapSize))
-            this.cellLoader.load(Bitmap.createBitmap(this.willBitmapSize.width, this.willBitmapSize.height, Bitmap.Config.ARGB_8888));
+//        if (!bitmapSize.equals(willBitmapSize))
+//            this.cellLoader.load(Bitmap.createBitmap(this.willBitmapSize.width, this.willBitmapSize.height, Bitmap.Config.ARGB_8888));
+        setImageBitmap(configurator.thumbnailCache().getPage(pageNumber));
     }
 
     @Override
@@ -85,6 +87,7 @@ public class Cell extends androidx.appcompat.widget.AppCompatImageView implement
         setImageBitmap(bitmap);
         bitmapSize.width = bitmap.getWidth();
         bitmapSize.height = bitmap.getHeight();
+//        bitmap.recycle();
     }
 
 

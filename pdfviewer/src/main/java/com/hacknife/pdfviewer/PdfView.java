@@ -1,5 +1,6 @@
 package com.hacknife.pdfviewer;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PointF;
@@ -10,26 +11,17 @@ import android.view.ViewGroup;
 import com.artifex.mupdf.fitz.SeekableInputStream;
 import com.hacknife.pdfviewer.core.PDFCore;
 import com.hacknife.pdfviewer.helper.Logger;
-import com.hacknife.pdfviewer.listener.OnDoubleTapListener;
-import com.hacknife.pdfviewer.listener.OnDrawListener;
-import com.hacknife.pdfviewer.listener.OnErrorListener;
-import com.hacknife.pdfviewer.listener.OnLongPressListener;
-import com.hacknife.pdfviewer.listener.OnPageChangeListener;
-import com.hacknife.pdfviewer.listener.OnPageErrorListener;
-import com.hacknife.pdfviewer.listener.OnPageScrollListener;
-import com.hacknife.pdfviewer.listener.OnScaleListener;
-import com.hacknife.pdfviewer.listener.OnTapListener;
-import com.hacknife.pdfviewer.model.Cache;
+import com.hacknife.pdfviewer.loader.PdfLoader;
 import com.hacknife.pdfviewer.model.Cell;
-import com.hacknife.pdfviewer.model.Direction;
 import com.hacknife.pdfviewer.model.Size;
+import com.hacknife.pdfviewer.state.Prepare;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 
-public class PdfView extends ViewGroup {
+public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener {
     private static final String TAG_CREATE = "TAG_CREATE";
     private static final String TAG_RECYCLER_SCROLL_TOP = "TAG_RECYCLER_SCROLL_TOP";
     private static final String TAG_RECYCLER_SCROLL_BOTTOM = "TAG_RECYCLER_SCROLL_BOTTOM";
@@ -37,14 +29,12 @@ public class PdfView extends ViewGroup {
     private static final String TAG_RECYCLER_SCALE_BOTTOM = "TAG_RECYCLER_SCALE_BOTTOM";
     protected Configurator configurator;
     private DragPinchManager dragPinchManager;
-    private Cache cache;
     private Map<Integer, Cell> displayCell;
-    private int pageCount;
     private Size packSize;
     private float offset = 0f;
     private float distance = 0f;
     private float transverseLength = 0f; //页面放大后，非翻滚页面的距离
-
+    private Prepare prepared = Prepare.FAIL;
 
     public PdfView(Context context) {
         this(context, null);
@@ -63,11 +53,13 @@ public class PdfView extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        if (prepared != Prepare.PREPARED) return;
         layoutCell();
     }
 
     private void layoutCell() {
         if (configurator == null) return;
+        int pageCount = configurator.core.pageCount();
         for (int page = configurator.pageNumber, height = (int) -distance; height < packSize.height && page < pageCount; page++) {
             Cell cell = displayCell.get(page);
             cell.layoutKeep((int) -offset, height, (int) -offset + cell.size.width, height + cell.size.height);
@@ -90,20 +82,31 @@ public class PdfView extends ViewGroup {
     }
 
 
-    private void createCell(Configurator configurator) {
+    @SuppressLint("DefaultLocale")
+    protected void tryToad(Configurator configurator) {
+        Logger.t("").log("try load");
+        if (prepared == Prepare.PREPARING) return;
         if (packSize == null) return;
-        transverseLength = (configurator.scale - 1f) * packSize.width;
-        pageCount = configurator.core.pageCount();
-        if (cache != null) cache.clear();
-        cache = new Cache(this, this.configurator);
-        displayCell.clear();
-        for (int page = configurator.pageNumber, height = 0; height < packSize.height && page < pageCount; page++) {
-            Cell cell = cache.achieveCell(page, PDFCore.MODE.WIDTH);
-            addView(cell);
-            Logger.t(TAG_CREATE).log("add:" + page);
-            displayCell.put(page, cell);
-            height += cell.size.height;
+        prepared = Prepare.PREPARING;
+
+        //检查文件 页数 当前页面 是否正确 ，不正确则认为加载失败
+        if (configurator.core.pageCount() == 0) {
+            prepared = Prepare.FAIL;
         }
+        if (configurator.pageNumber >= configurator.core.pageCount()) {
+            prepared = Prepare.FAIL;
+        }
+
+        if (prepared == Prepare.FAIL) {
+            if (configurator.errorListener != null)
+                configurator.errorListener.onError(new RuntimeException(String.format("pageCount:%d , pageNumber:%d", configurator.core.pageCount(), configurator.pageNumber)));
+            Logger.t("").log("try load fail");
+            return;
+        }
+
+        PdfLoader pdfLoader = new PdfLoader(this);
+        pdfLoader.execute(configurator);
+
     }
 
     public Configurator formFile(File file) {
@@ -120,6 +123,7 @@ public class PdfView extends ViewGroup {
 
     private synchronized void scaleToKernel(float scale, PointF pointF) {
         int scalePage = configurator.pageNumber;
+        int pageCount = configurator.core.pageCount();
         float offset = (this.offset / configurator.scale + pointF.x / configurator.scale) * scale - pointF.x;
         float distance = (this.distance / configurator.scale + pointF.y / configurator.scale) * scale - pointF.y;
         configurator.scale = scale;
@@ -137,7 +141,7 @@ public class PdfView extends ViewGroup {
                 Logger.t(TAG_RECYCLER_SCALE_TOP).log("remove:%d", configurator.pageNumber);
                 Cell rubbish = displayCell.remove(configurator.pageNumber);
                 removeView(rubbish);
-                cache.holdCell(rubbish, configurator.pageNumber, PDFCore.MODE.WIDTH);
+                configurator.cellCache.holdCell(rubbish, configurator.pageNumber, PDFCore.MODE.WIDTH);
                 configurator.pageNumber++;
             } else {
                 this.distance = distance;
@@ -157,7 +161,7 @@ public class PdfView extends ViewGroup {
                 Logger.t(TAG_RECYCLER_SCALE_BOTTOM).log("remove:%d", overPage);
                 Cell rubbish = displayCell.remove(overPage);
                 removeView(rubbish);
-                cache.holdCell(rubbish, overPage, PDFCore.MODE.WIDTH);
+                configurator.cellCache.holdCell(rubbish, overPage, PDFCore.MODE.WIDTH);
             }
 
         } else if (distance < this.distance) {//缩小
@@ -165,7 +169,7 @@ public class PdfView extends ViewGroup {
             if (distance < 0) {
                 configurator.pageNumber--;
                 if (configurator.pageNumber >= 0) {
-                    Cell cell = cache.achieveCell(configurator.pageNumber, PDFCore.MODE.WIDTH);
+                    Cell cell = configurator.cellCache.achieveCell(configurator.pageNumber, PDFCore.MODE.WIDTH);
                     addView(cell);
                     Logger.t(TAG_RECYCLER_SCROLL_TOP).log("add:%d", configurator.pageNumber);
                     displayCell.put(configurator.pageNumber, cell);
@@ -199,7 +203,7 @@ public class PdfView extends ViewGroup {
                     Logger.t(TAG_RECYCLER_SCROLL_BOTTOM).log("最后一页重置偏移量:%f", this.distance);
                     configurator.pageNumber--;
                     if (configurator.pageNumber >= 0) {
-                        Cell cell = cache.achieveCell(configurator.pageNumber, PDFCore.MODE.WIDTH);
+                        Cell cell = configurator.cellCache.achieveCell(configurator.pageNumber, PDFCore.MODE.WIDTH);
                         addView(cell);
                         Logger.t(TAG_RECYCLER_SCROLL_TOP).log("add:%d", configurator.pageNumber);
                         displayCell.put(configurator.pageNumber, cell);
@@ -215,20 +219,21 @@ public class PdfView extends ViewGroup {
             if (tailPage != -1) {
                 if (tailPage < pageCount) {
                     Logger.t(TAG_RECYCLER_SCALE_BOTTOM).log("add:%d", tailPage);
-                    Cell cell = cache.achieveCell(tailPage, PDFCore.MODE.WIDTH);
+                    Cell cell = configurator.cellCache.achieveCell(tailPage, PDFCore.MODE.WIDTH);
                     addView(cell);
                     Logger.t(TAG_RECYCLER_SCROLL_BOTTOM).log("add:%d", tailPage);
                     displayCell.put(tailPage, cell);
                 }
             }
         }
-        if (configurator.pageNumber != scalePage)
+        if (configurator.pageNumber != scalePage && prepared == Prepare.PREPARED)
             if (configurator.pageChangeListener != null)
                 configurator.pageChangeListener.onPageChanged(configurator.pageNumber, pageCount);
         layoutCell();
     }
 
     private synchronized boolean moveByRelativeKernel(float distanceX, float distanceY) {
+        int pageCount = configurator.core.pageCount();
         int movePage = configurator.pageNumber;
         if (!configurator.transverseEnable) distanceX = 0;
         float relOffset = offset + distanceX;
@@ -251,7 +256,7 @@ public class PdfView extends ViewGroup {
             if (relDistance < 0) {
                 if (configurator.pageNumber > 0) {
                     configurator.pageNumber--;
-                    Cell cell = cache.achieveCell(configurator.pageNumber, PDFCore.MODE.WIDTH);
+                    Cell cell = configurator.cellCache.achieveCell(configurator.pageNumber, PDFCore.MODE.WIDTH);
                     addView(cell);
                     contentChange = true;
                     Logger.t(TAG_RECYCLER_SCROLL_TOP).log("add:%d", configurator.pageNumber);
@@ -266,13 +271,13 @@ public class PdfView extends ViewGroup {
                 Cell rubbish = displayCell.remove(bottomRemainingPage);
                 removeView(rubbish);
                 contentChange = true;
-                cache.holdCell(rubbish, configurator.pageNumber - 1, PDFCore.MODE.WIDTH);
+                configurator.cellCache.holdCell(rubbish, configurator.pageNumber - 1, PDFCore.MODE.WIDTH);
             }
         } else if (distanceY > 0) {
             if (bottomRemaining > 0) {
                 if (bottomRemaining - distanceY < 0) {
                     if (bottomRemainingPage + 1 < pageCount) {
-                        Cell cell = cache.achieveCell(bottomRemainingPage + 1, PDFCore.MODE.WIDTH);
+                        Cell cell = configurator.cellCache.achieveCell(bottomRemainingPage + 1, PDFCore.MODE.WIDTH);
                         addView(cell);
                         contentChange = true;
                         Logger.t(TAG_RECYCLER_SCROLL_BOTTOM).log("add:%d", bottomRemainingPage + 1);
@@ -290,7 +295,7 @@ public class PdfView extends ViewGroup {
                 Cell rubbish = displayCell.remove(configurator.pageNumber);
                 removeView(rubbish);
                 contentChange = true;
-                cache.holdCell(rubbish, bottomRemainingPage + 1, PDFCore.MODE.WIDTH);
+                configurator.cellCache.holdCell(rubbish, bottomRemainingPage + 1, PDFCore.MODE.WIDTH);
                 configurator.pageNumber++;
                 relDistance = remaining;
             }
@@ -301,7 +306,7 @@ public class PdfView extends ViewGroup {
         offset = relOffset;
         distance = relDistance;
         layoutCell();
-        if (configurator.pageNumber != movePage)
+        if (configurator.pageNumber != movePage && prepared == Prepare.PREPARED)
             if (configurator.pageChangeListener != null)
                 configurator.pageChangeListener.onPageChanged(configurator.pageNumber, pageCount);
         return true;
@@ -309,13 +314,13 @@ public class PdfView extends ViewGroup {
 
     public void onScale(float scale, PointF point) {
         scaleToKernel(scale, point);
-        if (configurator.scaleListener != null)
+        if (prepared == Prepare.PREPARED && configurator.scaleListener != null)
             configurator.scaleListener.onScale(scale, point);
     }
 
     public boolean onScroll(float distanceX, float distanceY) {
         boolean isScrolled = moveByRelativeKernel(distanceX, distanceY);
-        if (configurator.pageScrollListener != null)
+        if (prepared == Prepare.PREPARED && configurator.pageScrollListener != null)
             configurator.pageScrollListener.onPageScrolled(isScrolled, configurator.pageNumber, distance, distanceX, distanceY);
         return isScrolled;
     }
@@ -331,15 +336,16 @@ public class PdfView extends ViewGroup {
     }
 
     public void onLongPress(MotionEvent e) {
-        if (configurator.longPressListener != null) configurator.longPressListener.onLongPress(e);
+        if (prepared == Prepare.PREPARED && configurator.longPressListener != null)
+            configurator.longPressListener.onLongPress(e);
     }
 
     public void addView(Cell child) {
         if (indexOfChild(child) == -1) {
             super.addView(child);
-            if (child.pageNumber != 0 && child.space.getParent() == null) {
-                super.addView(child.space);
-            }
+        }
+        if (child.pageNumber != 0 && child.space.getParent() == null) {
+            super.addView(child.space);
         }
     }
 
@@ -349,191 +355,29 @@ public class PdfView extends ViewGroup {
     }
 
     public void onSingleTap(MotionEvent e) {
-        if (configurator.tapListener != null) configurator.tapListener.onTap(e);
+        if (prepared == Prepare.PREPARED && configurator.tapListener != null)
+            configurator.tapListener.onTap(e);
     }
 
     public void onDoubleTap(MotionEvent e) {
-        if (configurator.doubleTapListener != null) configurator.doubleTapListener.onDoubleTap(e);
+        if (prepared == Prepare.PREPARED && configurator.doubleTapListener != null)
+            configurator.doubleTapListener.onDoubleTap(e);
     }
 
-    public static class Configurator {
-        private PdfView view;
-
-        protected Configurator(PdfView view) {
-            this.view = view;
+    @Override
+    public void onPdfLoaded() {
+        int pageCount = configurator.core.pageCount();
+        transverseLength = (configurator.scale - 1f) * packSize.width;
+        displayCell.clear();
+        for (int page = configurator.pageNumber, height = 0; height < packSize.height && page < pageCount; page++) {
+            Cell cell = configurator.cellCache.achieveCell(page, PDFCore.MODE.WIDTH);
+            addView(cell);
+            Logger.t(TAG_CREATE).log("add:" + page);
+            displayCell.put(page, cell);
+            height += cell.size.height;
         }
-
-        public static final int SCALE_MIN = 1;
-        public static final int SCALE_MAX = 3;
-        protected OnDoubleTapListener doubleTapListener;
-        protected OnDrawListener drawListener;
-        protected OnErrorListener errorListener;
-        protected OnLongPressListener longPressListener;
-        protected OnPageChangeListener pageChangeListener;
-        protected OnPageErrorListener pageErrorListener;
-        protected OnPageScrollListener pageScrollListener;
-        protected OnTapListener tapListener;
-        protected OnScaleListener scaleListener;
-        protected int scaleMin = SCALE_MIN;
-        protected int scaleMax = SCALE_MAX;
-        private boolean scaleEnable = true;
-        private boolean transverseEnable = true;
-        private Direction rollingDirection = Direction.VERTICAL;
-        private PDFCore core;
-        private float centerX = 0.5f;
-        private float centerY = 0.5f;
-        protected float scale = 1f;
-        protected Size packSize = new Size(0, 0);
-        protected int pageNumber;
-        protected int space = 2;
-        protected int spaceColor = Color.parseColor("#FF000000");
-
-
-        public Configurator transverseEnable(boolean transverseEnable) {
-            this.transverseEnable = transverseEnable;
-            return this;
-        }
-
-        public boolean transverseEnable() {
-            return transverseEnable;
-        }
-
-        public Configurator spaceColor(int spaceColor) {
-            this.spaceColor = spaceColor;
-            return this;
-        }
-
-        public int spaceColor() {
-            return spaceColor;
-        }
-
-        public Configurator space(int space) {
-            this.space = space;
-            return this;
-        }
-
-        public int space() {
-            return space;
-        }
-
-        public Configurator pageNumber(int pageNumber) {
-            this.pageNumber = pageNumber;
-            return this;
-        }
-
-        public int pageNumber() {
-            return pageNumber;
-        }
-
-        public Size packSize() {
-            return packSize;
-        }
-
-        public float scale() {
-            return scale;
-        }
-
-        public Configurator scale(float scale) {
-            this.scale = scale;
-            return this;
-        }
-
-        public Configurator centerX(float centerX) {
-            this.centerX = centerX;
-            return this;
-        }
-
-        public Configurator centerY(float centerY) {
-            this.centerY = centerY;
-            return this;
-        }
-
-        public Configurator core(PDFCore core) {
-            this.core = core;
-            return this;
-        }
-
-        public PDFCore core() {
-            return core;
-        }
-
-        public Configurator rollingDirection(Direction rollingDirection) {
-            this.rollingDirection = rollingDirection;
-            return this;
-        }
-
-        public Direction rollingDirection() {
-            return rollingDirection;
-        }
-
-        public Configurator setScaleEnable(boolean scaleEnable) {
-            this.scaleEnable = scaleEnable;
-            return this;
-        }
-
-        public boolean scaleEnable() {
-            return scaleEnable;
-        }
-
-        public Configurator setScaleMax(int scaleMax) {
-            this.scaleMax = scaleMax;
-            return this;
-        }
-
-        public Configurator setScaleMin(int scaleMin) {
-            this.scaleMin = scaleMin;
-            return this;
-        }
-
-        public Configurator onDoubleTapListener(OnDoubleTapListener doubleTapListener) {
-            this.doubleTapListener = doubleTapListener;
-            return this;
-        }
-
-        public Configurator onDrawListener(OnDrawListener drawListener) {
-            this.drawListener = drawListener;
-            return this;
-        }
-
-        public Configurator onError(OnErrorListener errorListener) {
-            this.errorListener = errorListener;
-            return this;
-        }
-
-        public Configurator onLongPress(OnLongPressListener longPressListener) {
-            this.longPressListener = longPressListener;
-            return this;
-        }
-
-        public Configurator onPageChange(OnPageChangeListener pageChangeListener) {
-            this.pageChangeListener = pageChangeListener;
-            return this;
-        }
-
-        public Configurator onPageError(OnPageErrorListener pageErrorListener) {
-            this.pageErrorListener = pageErrorListener;
-            return this;
-        }
-
-        public Configurator onPageScroll(OnPageScrollListener pageScrollListener) {
-            this.pageScrollListener = pageScrollListener;
-            return this;
-        }
-
-        public Configurator onTap(OnTapListener tapListener) {
-            this.tapListener = tapListener;
-            return this;
-        }
-
-        public Configurator onScale(OnScaleListener scaleListener) {
-            this.scaleListener = scaleListener;
-            return this;
-        }
-
-        public void build() {
-            view.createCell(this);
-            view.configurator = this;
-        }
+        prepared = Prepare.PREPARED;
+        requestLayout();
     }
 
     public Configurator getConfigurator() {

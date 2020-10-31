@@ -14,7 +14,9 @@ public class SizeF {
         height = height * scale;
         return this;
     }
-
+    public SizeF newScale(float scale) {
+        return new SizeF(width * scale,height*scale);
+    }
     public SizeF widthScaleTo(float width) {
         return scale(width / this.width);
     }
@@ -26,5 +28,13 @@ public class SizeF {
 
     public Size toSize() {
         return new Size((int) width, (int) height);
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "width=" + width +
+                ", height=" + height +
+                '}';
     }
 }

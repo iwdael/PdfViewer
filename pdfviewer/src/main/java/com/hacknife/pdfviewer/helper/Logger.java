@@ -18,7 +18,7 @@ public class Logger {
         }
 
         public void log(String mat, Object... content) {
-//            Log.v(String.format("%50s", "dzq" + (tag == null ? "" : "-" + tag)), String.format(mat, content));
+            Log.v(String.format("%50s", "dzq" + (tag == null ? "" : "-" + tag)), String.format(mat, content));
         }
     }
 }
