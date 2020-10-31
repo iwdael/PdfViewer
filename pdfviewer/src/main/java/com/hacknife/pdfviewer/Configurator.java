@@ -17,6 +17,7 @@ import com.hacknife.pdfviewer.listener.OnScaleListener;
 import com.hacknife.pdfviewer.listener.OnTapListener;
 import com.hacknife.pdfviewer.model.Size;
 import com.hacknife.pdfviewer.state.Direction;
+import com.hacknife.pdfviewer.state.ScaleMode;
 
 public class Configurator {
     protected PdfView view;
@@ -55,16 +56,16 @@ public class Configurator {
     protected PageCache pageCache;
     protected CellCache cellCache;
     protected int thumbnailCount = 10;
-    protected PDFCore.MODE mode = PDFCore.MODE.WIDTH;
+    protected ScaleMode scaleMode = ScaleMode.WIDTH;
 
 
-    public Configurator mode(PDFCore.MODE mode) {
-        this.mode = mode;
+    public Configurator scaleMode(ScaleMode  scaleMode) {
+        this.scaleMode = scaleMode;
         return this;
     }
 
-    public PDFCore.MODE mode() {
-        return mode;
+    public ScaleMode  scaleMode() {
+        return scaleMode;
     }
 
     public Configurator thumbnailCount(int thumbnailCount) {

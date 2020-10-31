@@ -5,6 +5,7 @@ import com.hacknife.pdfviewer.PdfView;
 import com.hacknife.pdfviewer.core.PDFCore;
 import com.hacknife.pdfviewer.helper.Logger;
 import com.hacknife.pdfviewer.model.Cell;
+import com.hacknife.pdfviewer.state.ScaleMode;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +23,7 @@ public class CellCache {
         this.cellMap = new HashMap<>();
     }
 
-    public Cell achieveCell(int page, PDFCore.MODE mode) {
+    public Cell achieveCell(int page, ScaleMode mode) {
         if (cellMap.containsKey(page)) {
             Logger.t(TAG).log("从缓存读取:%d , mode:%s", page, mode.toString());
             return cellMap.get(page).loadCell(page, mode);
@@ -30,7 +31,7 @@ public class CellCache {
             return new Cell(context, configurator).loadCell(page, mode);
     }
 
-    public void holdCell(Cell cell, int page, PDFCore.MODE mode) {
+    public void holdCell(Cell cell, int page, ScaleMode mode) {
         Logger.t(TAG).log("保存到缓存:%d , mode:%s", page, mode.toString());
         if (!cellMap.containsKey(page) && page >= 0 && page < configurator.core().pageCount()) {
             cell.loadCell(page, mode);

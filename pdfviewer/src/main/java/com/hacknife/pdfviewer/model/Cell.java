@@ -1,19 +1,15 @@
 package com.hacknife.pdfviewer.model;
 
-import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.graphics.Rect;
 
 import androidx.annotation.NonNull;
 
 import com.hacknife.pdfviewer.Configurator;
-import com.hacknife.pdfviewer.core.PDFCore;
-import com.hacknife.pdfviewer.helper.Logger;
 import com.hacknife.pdfviewer.loader.CellLoader;
 
 import com.hacknife.pdfviewer.PdfView;
 import com.hacknife.pdfviewer.listener.OnCellLoaderListener;
+import com.hacknife.pdfviewer.state.ScaleMode;
 import com.hacknife.pdfviewer.widget.Space;
 
 
@@ -21,9 +17,8 @@ public class Cell extends androidx.appcompat.widget.AppCompatImageView implement
 
     private Configurator configurator;
     private CellLoader cellLoader;
-    private PDFCore core;
     public int pageNumber = -1;
-    private PDFCore.MODE pageMode;
+    private ScaleMode pageMode;
     public Size size = new Size(0, 0);
 
     public Space space;
@@ -35,16 +30,15 @@ public class Cell extends androidx.appcompat.widget.AppCompatImageView implement
         super(context.getContext());
         this.configurator = configurator;
         this.context = context;
-        this.core = configurator.core();
         cellLoader = new CellLoader(this);
         space = new Space(context);
         space.setBackgroundColor(configurator.spaceColor());
     }
 
-    public boolean reMeasure() {
-        SizeF size = core.getPageSize(pageNumber);
+    private boolean reMeasure(int pageNumber) {
+        SizeF size = configurator.pageCache().getPage(pageNumber).size;
         Size packSize = configurator.packSize();
-        if (this.pageMode == PDFCore.MODE.WIDTH)
+        if (this.pageMode == ScaleMode.WIDTH)
             size.widthScaleTo(packSize.width);
         else
             size.heightScaleTo(packSize.height);
@@ -59,10 +53,13 @@ public class Cell extends androidx.appcompat.widget.AppCompatImageView implement
         }
         return false;
     }
+    public boolean reMeasure( ) {
+        return reMeasure(pageNumber);
+    }
 
-    public Cell loadCell(int pageNumber, PDFCore.MODE mode) {
+    public Cell loadCell(int pageNumber, ScaleMode mode) {
         this.pageMode = mode;
-        this.reMeasure();
+        this.reMeasure(pageNumber);
 //        if ((!bitmapSize.equals(willBitmapSize)) || (pageNumber != this.pageNumber))
 //            this.cellLoader.load(Bitmap.createBitmap(this.willBitmapSize.width, this.willBitmapSize.height, Bitmap.Config.ARGB_8888));
         setImageBitmap(configurator.thumbnailCache().getPage(pageNumber));
@@ -78,7 +75,7 @@ public class Cell extends androidx.appcompat.widget.AppCompatImageView implement
 
     @Override
     public Bitmap onLoadBitmap(Bitmap bitmap) {
-        core.drawPage(bitmap, pageNumber, pageMode == PDFCore.MODE.WIDTH ? bitmap.getWidth() : bitmap.getHeight(), pageMode, 0, 0, 1);
+        configurator.pageCache().getPage(pageNumber).drawPage(bitmap, pageMode == ScaleMode.WIDTH ? bitmap.getWidth() : bitmap.getHeight(), pageMode, 0, 0, 1);
         return bitmap;
     }
 
@@ -92,7 +89,7 @@ public class Cell extends androidx.appcompat.widget.AppCompatImageView implement
 
 
     public void layoutKeep(int l, int t, int r, int b) {
-         space.layout(pageNumber, l, t, r, t + configurator.space());
+        space.layout(pageNumber, l, t, r, t + configurator.space());
         if (getParent() == null) context.addView(this);
         layout(l, t + (pageNumber != 0 ? configurator.space() : 0), r, b);
 

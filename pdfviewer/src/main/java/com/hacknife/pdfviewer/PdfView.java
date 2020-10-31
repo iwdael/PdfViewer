@@ -2,7 +2,6 @@ package com.hacknife.pdfviewer;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -15,6 +14,7 @@ import com.hacknife.pdfviewer.loader.PdfLoader;
 import com.hacknife.pdfviewer.model.Cell;
 import com.hacknife.pdfviewer.model.Size;
 import com.hacknife.pdfviewer.state.Prepare;
+import com.hacknife.pdfviewer.state.ScaleMode;
 
 import java.io.File;
 import java.util.HashMap;
@@ -124,6 +124,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
     private synchronized void scaleToKernel(float scale, PointF pointF) {
         int scalePage = configurator.pageNumber;
         int pageCount = configurator.core.pageCount();
+        ScaleMode mode = configurator.scaleMode;
         float offset = (this.offset / configurator.scale + pointF.x / configurator.scale) * scale - pointF.x;
         float distance = (this.distance / configurator.scale + pointF.y / configurator.scale) * scale - pointF.y;
         configurator.scale = scale;
@@ -141,7 +142,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
                 Logger.t(TAG_RECYCLER_SCALE_TOP).log("remove:%d", configurator.pageNumber);
                 Cell rubbish = displayCell.remove(configurator.pageNumber);
                 removeView(rubbish);
-                configurator.cellCache.holdCell(rubbish, configurator.pageNumber, PDFCore.MODE.WIDTH);
+                configurator.cellCache.holdCell(rubbish, configurator.pageNumber, mode);
                 configurator.pageNumber++;
             } else {
                 this.distance = distance;
@@ -161,7 +162,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
                 Logger.t(TAG_RECYCLER_SCALE_BOTTOM).log("remove:%d", overPage);
                 Cell rubbish = displayCell.remove(overPage);
                 removeView(rubbish);
-                configurator.cellCache.holdCell(rubbish, overPage, PDFCore.MODE.WIDTH);
+                configurator.cellCache.holdCell(rubbish, overPage, mode);
             }
 
         } else if (distance < this.distance) {//缩小
@@ -169,7 +170,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
             if (distance < 0) {
                 configurator.pageNumber--;
                 if (configurator.pageNumber >= 0) {
-                    Cell cell = configurator.cellCache.achieveCell(configurator.pageNumber, PDFCore.MODE.WIDTH);
+                    Cell cell = configurator.cellCache.achieveCell(configurator.pageNumber, mode);
                     addView(cell);
                     Logger.t(TAG_RECYCLER_SCROLL_TOP).log("add:%d", configurator.pageNumber);
                     displayCell.put(configurator.pageNumber, cell);
@@ -203,7 +204,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
                     Logger.t(TAG_RECYCLER_SCROLL_BOTTOM).log("最后一页重置偏移量:%f", this.distance);
                     configurator.pageNumber--;
                     if (configurator.pageNumber >= 0) {
-                        Cell cell = configurator.cellCache.achieveCell(configurator.pageNumber, PDFCore.MODE.WIDTH);
+                        Cell cell = configurator.cellCache.achieveCell(configurator.pageNumber, mode);
                         addView(cell);
                         Logger.t(TAG_RECYCLER_SCROLL_TOP).log("add:%d", configurator.pageNumber);
                         displayCell.put(configurator.pageNumber, cell);
@@ -219,7 +220,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
             if (tailPage != -1) {
                 if (tailPage < pageCount) {
                     Logger.t(TAG_RECYCLER_SCALE_BOTTOM).log("add:%d", tailPage);
-                    Cell cell = configurator.cellCache.achieveCell(tailPage, PDFCore.MODE.WIDTH);
+                    Cell cell = configurator.cellCache.achieveCell(tailPage, mode);
                     addView(cell);
                     Logger.t(TAG_RECYCLER_SCROLL_BOTTOM).log("add:%d", tailPage);
                     displayCell.put(tailPage, cell);
@@ -235,6 +236,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
     private synchronized boolean moveByRelativeKernel(float distanceX, float distanceY) {
         int pageCount = configurator.core.pageCount();
         int movePage = configurator.pageNumber;
+        ScaleMode mode = configurator.scaleMode;
         if (!configurator.transverseEnable) distanceX = 0;
         float relOffset = offset + distanceX;
         float relDistance = distance + distanceY;
@@ -256,7 +258,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
             if (relDistance < 0) {
                 if (configurator.pageNumber > 0) {
                     configurator.pageNumber--;
-                    Cell cell = configurator.cellCache.achieveCell(configurator.pageNumber, PDFCore.MODE.WIDTH);
+                    Cell cell = configurator.cellCache.achieveCell(configurator.pageNumber, mode);
                     addView(cell);
                     contentChange = true;
                     Logger.t(TAG_RECYCLER_SCROLL_TOP).log("add:%d", configurator.pageNumber);
@@ -271,13 +273,13 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
                 Cell rubbish = displayCell.remove(bottomRemainingPage);
                 removeView(rubbish);
                 contentChange = true;
-                configurator.cellCache.holdCell(rubbish, configurator.pageNumber - 1, PDFCore.MODE.WIDTH);
+                configurator.cellCache.holdCell(rubbish, configurator.pageNumber - 1, mode);
             }
         } else if (distanceY > 0) {
             if (bottomRemaining > 0) {
                 if (bottomRemaining - distanceY < 0) {
                     if (bottomRemainingPage + 1 < pageCount) {
-                        Cell cell = configurator.cellCache.achieveCell(bottomRemainingPage + 1, PDFCore.MODE.WIDTH);
+                        Cell cell = configurator.cellCache.achieveCell(bottomRemainingPage + 1, mode);
                         addView(cell);
                         contentChange = true;
                         Logger.t(TAG_RECYCLER_SCROLL_BOTTOM).log("add:%d", bottomRemainingPage + 1);
@@ -295,7 +297,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
                 Cell rubbish = displayCell.remove(configurator.pageNumber);
                 removeView(rubbish);
                 contentChange = true;
-                configurator.cellCache.holdCell(rubbish, bottomRemainingPage + 1, PDFCore.MODE.WIDTH);
+                configurator.cellCache.holdCell(rubbish, bottomRemainingPage + 1, mode);
                 configurator.pageNumber++;
                 relDistance = remaining;
             }
@@ -370,7 +372,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
         transverseLength = (configurator.scale - 1f) * packSize.width;
         displayCell.clear();
         for (int page = configurator.pageNumber, height = 0; height < packSize.height && page < pageCount; page++) {
-            Cell cell = configurator.cellCache.achieveCell(page, PDFCore.MODE.WIDTH);
+            Cell cell = configurator.cellCache.achieveCell(page, configurator.scaleMode);
             addView(cell);
             Logger.t(TAG_CREATE).log("add:" + page);
             displayCell.put(page, cell);
