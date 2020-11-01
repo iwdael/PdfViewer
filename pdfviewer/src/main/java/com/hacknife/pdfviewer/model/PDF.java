@@ -28,7 +28,6 @@ public class PDF {
     }
 
     public synchronized void drawBitmap(Bitmap bm, int pageSize, ScaleMode mode, int offsetX, int offsetY, float scale) {
-//        Logger.t(TAG).log("lock:" + pageNumber);
         Matrix ctm = new Matrix(1, 1);
         RectI box = new RectI(new Rect(bounds.left, bounds.top, bounds.right, bounds.bottom).transform(ctm));
         if (mode == ScaleMode.WIDTH)
@@ -40,7 +39,6 @@ public class PDF {
         page.run(dev, ctm, null);
         dev.close();
         dev.destroy();
-//        Logger.t(TAG).log("release:" + pageNumber);
     }
 
 

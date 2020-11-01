@@ -347,14 +347,10 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
         if (indexOfChild(child) == -1) {
             super.addView(child);
         }
-        if (child.pageNumber != 0 && child.space.getParent() == null) {
-            super.addView(child.space);
-        }
     }
 
     public void removeView(Cell view) {
         super.removeView(view);
-        super.removeView(view.space);
     }
 
     public void onSingleTap(MotionEvent e) {

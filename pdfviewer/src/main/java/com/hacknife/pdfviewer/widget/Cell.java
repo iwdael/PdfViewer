@@ -23,15 +23,13 @@ public class Cell extends Page implements OnThumbnailListener {
     private ScaleMode pageMode;
     public Size size = new Size(0, 0);
 
-    public Space space;
     private Size willBitmapSize = new Size(0, 0);
     private PdfView context;
 
     public Cell(@NonNull PdfView context, Configurator configurator) {
         super(context.getContext(), configurator);
         this.context = context;
-        space = new Space(context);
-        space.setBackgroundColor(configurator.spaceColor());
+        configurator.thumbnailListeners().add(this);
     }
 
     private boolean reMeasure(int pageNumber) {
@@ -69,18 +67,11 @@ public class Cell extends Page implements OnThumbnailListener {
 
     @Override
     public void onReload() {
-        invalidate();
+        postInvalidate();
     }
 
     public void layoutKeep(int l, int t, int r, int b) {
-        space.layout(pageNumber, l, t, r, t + configurator.space());
-        if (getParent() == null) context.addView(this);
-        layout(l, t + (pageNumber != 0 ? configurator.space() : 0), r, b);
-//        if (this.pageNumber % 2 == 0)
-//            setBackgroundColor(Color.parseColor("#EB3700B3"));
-//        else
-//            setBackgroundColor(Color.parseColor("#FF555555"));
-
+        layout(l, t, r, b);
     }
 
 

@@ -33,7 +33,7 @@ public class PDFCore {
 
 
     public int pageCount() {
-        return 1;
+        return pageCount;
     }
 
 

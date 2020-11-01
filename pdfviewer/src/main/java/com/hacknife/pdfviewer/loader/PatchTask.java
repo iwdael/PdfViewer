@@ -15,23 +15,25 @@ public class PatchTask implements Runnable, Comparable<PatchTask> {
     private float scale;
     private int patchX;
     private int patchY;
+    private int patchWidth;
+    private int patchHeight;
     private int pageSize;
     private ScaleMode mode;
     private long createTime;
     private Configurator configurator;
-    private int patchSize;
-    public PatchTask(Patch patch, PDF pdf, float scale, int patchX, int patchY , int pageSize, ScaleMode mode, Configurator configurator) {
+    public PatchTask(Patch patch, PDF pdf, float scale, int patchX, int patchY ,int patchWidth, int patchHeight , int pageSize, ScaleMode mode, Configurator configurator) {
         this.patch = patch;
         this.pdf = pdf;
         this.scale = scale;
         this.patchX = patchX;
         this.patchY = patchY;
+        this.patchWidth = patchWidth;
+        this.patchHeight = patchHeight;
         this.pageSize = pageSize;
         this.mode = mode;
         this.configurator = configurator;
-        this.patchSize = patch.bitmap.getWidth();
         this.createTime = System.currentTimeMillis();
-        Logger.t(TAG).log("create task| page:%d , patchSize:%d , patchX:%d , patchY:%d , scale:%f ,pageSize:%d ", pdf.pageNumber, patch.bitmap.getWidth(),  patchX, patchY, scale,pageSize);
+        Logger.t(TAG).log("create task| page:%d , patchWidth:%d , patchHeight:%d , patchX:%d , patchY:%d , scale:%f ,pageSize:%d ", pdf.pageNumber, patchWidth,patchHeight,  patchX, patchY, scale,pageSize);
     }
 
     @Override
@@ -40,12 +42,13 @@ public class PatchTask implements Runnable, Comparable<PatchTask> {
         pdf.drawBitmap(patch.bitmap, pageSize, mode, patchX, patchY, scale);
         patch.state = PatchState.PREPARE;
         patch.scale = scale;
-        patch.rect.set(patchX, patchY, patchX + patchSize, patchY + patchSize);
+        patch.rect.set(patchX, patchY, patchX + patchWidth, patchY +patchHeight);
         patch.page = pdf.pageNumber;
-//        Logger.t(TAG).log("time:%d , page:%d , patchX:%d , patchY:%d , scale:%f ", (int) (System.currentTimeMillis() - startTime), pdf.pageNumber, patchX, patchY, scale);
+        Logger.t(TAG).log("time:%d , page:%d , patchX:%d , patchY:%d , scale:%f ", (int) (System.currentTimeMillis() - startTime), pdf.pageNumber, patchX, patchY, scale);
         configurator.thumbnailCache().buffer(patch);
         for (OnThumbnailListener listener : configurator.thumbnailListeners()) {
             if (listener.onThumbnail(patch)) {
+                listener.onReload();
                 break;
             }
         }

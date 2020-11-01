@@ -15,32 +15,6 @@ public class TaskFactory {
     private int pageSize;
 
     public static void createThumbnailTask(Configurator configurator) {
-//        Size packSize = configurator.packSize();
-//        int pageCount = configurator.core().pageCount();
-//        ScaleMode mode = configurator.scaleMode();
-//        int pageNumber = configurator.pageNumber();
-//        int thumbnailCount = configurator.thumbnailCount();
-//        int thumbnailPatchCount = configurator.thumbnailPatchCount();
-//        PageCache pageCache = configurator.pageCache();
-//        float thumbnailScale = configurator.thumbnailScale();
-//        int page = pageNumber - (thumbnailCount / 3);
-//        if (page < 0) page = 0;
-//        if (thumbnailCount > pageCount) thumbnailCount = pageCount;
-//        int pageSize = (mode == ScaleMode.WIDTH ? packSize.width : packSize.height);
-//        int patchSize = (int) (pageSize * thumbnailScale);
-//        for (; page < thumbnailCount; page++) {
-//            PDF pdf = configurator.pageCache().getPage(page);
-//            int patchY = 0;
-//            int patchHeight = (int) ((mode == ScaleMode.WIDTH ? pdf.size.widthScaleTo(pageSize).height : pdf.size.heightScaleTo(pageSize).height) * thumbnailScale);
-//            Logger.t(TAG).log("create page task|page  scale :%s , page des:%s", pdf.size.toScaleString(), new SizeF(pageSize * thumbnailScale, patchHeight));
-//            while (patchY < patchHeight) {
-//                for (int patchIndex = 0; patchIndex < thumbnailPatchCount; patchIndex++) {
-//                    int patchX = patchIndex * patchSize;
-//                    configurator.thumbnailPool().push(new PatchTask(new Patch(patchSize, patchSize), pageCache.getPage(page), thumbnailScale, patchX, patchY, pageSize, mode, configurator));
-//                }
-//                patchY += patchSize;
-//            }
-//        }
         int thumbnailCount = configurator.thumbnailCount();
 
         //缩略图起始位置
@@ -73,7 +47,15 @@ public class TaskFactory {
             for (int portraitSize = 0; portraitSize < thumbnailPortraitSize; ) {
 
                 for (int landscape = 0; landscape < thumbnailPatchCount; landscape++) {
-                    thumbnailPool.push(new PatchTask(new Patch(patchSize, patchSize), pdf, thumbnailScale, landscape * patchSize, portraitSize,pageSize, mode, configurator));
+                    thumbnailPool.push(new PatchTask(
+                            new Patch(patchSize, patchSize),
+                            pdf,
+                            thumbnailScale,
+                            landscape * patchSize,
+                            portraitSize,
+                            patchSize,
+                            patchSize + portraitSize > thumbnailPortraitSize ? (patchSize + portraitSize) - thumbnailPortraitSize : patchSize,
+                            pageSize, mode, configurator));
                 }
 
                 portraitSize += patchSize;
