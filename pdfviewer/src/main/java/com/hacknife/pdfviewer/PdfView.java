@@ -2,6 +2,7 @@ package com.hacknife.pdfviewer;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -11,7 +12,7 @@ import com.artifex.mupdf.fitz.SeekableInputStream;
 import com.hacknife.pdfviewer.core.PDFCore;
 import com.hacknife.pdfviewer.helper.Logger;
 import com.hacknife.pdfviewer.loader.PdfLoader;
-import com.hacknife.pdfviewer.model.Cell;
+import com.hacknife.pdfviewer.widget.Cell;
 import com.hacknife.pdfviewer.model.Size;
 import com.hacknife.pdfviewer.state.Prepare;
 import com.hacknife.pdfviewer.state.ScaleMode;
@@ -48,6 +49,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
         super(context, attrs, defStyleAttr);
         dragPinchManager = new DragPinchManager(this);
         displayCell = new HashMap<>();
+        setBackgroundColor(Color.parseColor("#E8FFEB3B"));
     }
 
 
@@ -84,11 +86,10 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
 
     @SuppressLint("DefaultLocale")
     protected void tryToad(Configurator configurator) {
-        Logger.t("").log("try load");
         if (prepared == Prepare.PREPARING) return;
         if (packSize == null) return;
         prepared = Prepare.PREPARING;
-
+        Logger.t("").log("try load");
         //检查文件 页数 当前页面 是否正确 ，不正确则认为加载失败
         if (configurator.core.pageCount() == 0) {
             prepared = Prepare.FAIL;
@@ -103,7 +104,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
             Logger.t("").log("try load fail");
             return;
         }
-
+        configurator.thumbnailPool.launch();
         PdfLoader pdfLoader = new PdfLoader(this);
         pdfLoader.execute(configurator);
 
@@ -329,7 +330,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
 
     public void onScaleEnd() {
         for (Map.Entry<Integer, Cell> entry : displayCell.entrySet()) {
-            entry.getValue().reload();
+            entry.getValue().onReload();
         }
 
         for (Map.Entry<Integer, Cell> entry : displayCell.entrySet()) {

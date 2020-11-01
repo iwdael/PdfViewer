@@ -15,8 +15,6 @@ public class PDFCore {
 
     private Document pdfDocument;
     private int pageCount = -1;
-    private Page page;
-
 
     public PDFCore(String filename) {
         this.pdfDocument = Document.openDocument(filename);
@@ -35,7 +33,7 @@ public class PDFCore {
 
 
     public int pageCount() {
-        return pageCount;
+        return 1;
     }
 
 
@@ -46,8 +44,6 @@ public class PDFCore {
 
 
     public synchronized void close() {
-        if (this.page != null) this.page.destroy();
-        this.page = null;
         if (this.pdfDocument != null) this.pdfDocument.destroy();
         this.pdfDocument = null;
     }

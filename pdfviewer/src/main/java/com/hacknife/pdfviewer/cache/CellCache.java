@@ -2,9 +2,8 @@ package com.hacknife.pdfviewer.cache;
 
 import com.hacknife.pdfviewer.Configurator;
 import com.hacknife.pdfviewer.PdfView;
-import com.hacknife.pdfviewer.core.PDFCore;
 import com.hacknife.pdfviewer.helper.Logger;
-import com.hacknife.pdfviewer.model.Cell;
+import com.hacknife.pdfviewer.widget.Cell;
 import com.hacknife.pdfviewer.state.ScaleMode;
 
 import java.util.HashMap;

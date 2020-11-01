@@ -15,16 +15,22 @@ import com.hacknife.pdfviewer.listener.OnPageErrorListener;
 import com.hacknife.pdfviewer.listener.OnPageScrollListener;
 import com.hacknife.pdfviewer.listener.OnScaleListener;
 import com.hacknife.pdfviewer.listener.OnTapListener;
+import com.hacknife.pdfviewer.listener.OnThumbnailListener;
+import com.hacknife.pdfviewer.loader.ThumbnailPool;
 import com.hacknife.pdfviewer.model.Size;
 import com.hacknife.pdfviewer.state.Direction;
 import com.hacknife.pdfviewer.state.ScaleMode;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Configurator {
     protected PdfView view;
 
     protected Configurator(PdfView view) {
         this.view = view;
-        cellCache = new CellCache(view, this);
+        this.cellCache = new CellCache(view, this);
+
     }
 
     public static final int SCALE_MIN = 1;
@@ -50,21 +56,38 @@ public class Configurator {
     protected Size packSize = new Size(0, 0);
     protected int pageNumber;
     protected int space = 2;
-//    protected int spaceColor = Color.parseColor("#FF000000");
+    //    protected int spaceColor = Color.parseColor("#FF000000");
     protected int spaceColor = Color.parseColor("#F70FFFE8");
     protected ThumbnailCache thumbnailCache;
     protected PageCache pageCache;
     protected CellCache cellCache;
     protected int thumbnailCount = 10;
     protected ScaleMode scaleMode = ScaleMode.WIDTH;
+    protected ThumbnailPool thumbnailPool;
+    protected float thumbnailScale = 0.25f;
+    protected int  thumbnailPatchCount = 3;
+    List<OnThumbnailListener> thumbnailListeners=new ArrayList<>();
+    public List<OnThumbnailListener> thumbnailListeners() {
+        return thumbnailListeners;
+    }
+    public float thumbnailScale() {
+        return thumbnailScale;
+    }
 
+    public int  thumbnailPatchCount() {
+        return thumbnailPatchCount;
+    }
 
-    public Configurator scaleMode(ScaleMode  scaleMode) {
+    public ThumbnailPool thumbnailPool() {
+        return thumbnailPool;
+    }
+
+    public Configurator scaleMode(ScaleMode scaleMode) {
         this.scaleMode = scaleMode;
         return this;
     }
 
-    public ScaleMode  scaleMode() {
+    public ScaleMode scaleMode() {
         return scaleMode;
     }
 
@@ -237,7 +260,10 @@ public class Configurator {
     }
 
     public void build() {
+        this.thumbnailPool = new ThumbnailPool();
         view.tryToad(this);
         view.configurator = this;
     }
+
+
 }

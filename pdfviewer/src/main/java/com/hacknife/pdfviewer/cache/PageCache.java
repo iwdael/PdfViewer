@@ -19,7 +19,7 @@ public class PageCache {
     }
 
     public PDF getPage(int page){
-        Logger.t("page_cache").log("read:%d",page);
+//        Logger.t("page_cache").log("read:%d",page);
         return this.pages.get(page);
     }
 
