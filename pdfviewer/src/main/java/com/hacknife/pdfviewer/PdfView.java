@@ -23,6 +23,7 @@ import java.util.Map;
 
 
 public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener {
+    private static final String TAG = PdfView.class.getSimpleName();
     private static final String TAG_CREATE = "TAG_CREATE";
     private static final String TAG_RECYCLER_SCROLL_TOP = "TAG_RECYCLER_SCROLL_TOP";
     private static final String TAG_RECYCLER_SCROLL_BOTTOM = "TAG_RECYCLER_SCROLL_BOTTOM";
@@ -31,7 +32,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
     protected Configurator configurator;
     private DragPinchManager dragPinchManager;
     private Map<Integer, Cell> displayCell;
-    private Size packSize;
+    protected Size packSize;
     private float offset = 0f;
     private float distance = 0f;
     private float transverseLength = 0f; //页面放大后，非翻滚页面的距离
@@ -60,7 +61,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
     }
 
     private void layoutCell() {
-        if (configurator == null) return;
+        if (prepared != Prepare.PREPARED) return;
         int pageCount = configurator.core.pageCount();
         for (int page = configurator.pageNumber, height = (int) -distance; height < packSize.height && page < pageCount; page++) {
             Cell cell = displayCell.get(page);
@@ -80,7 +81,6 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
             configurator.packSize.height = h;
             configurator.build();
         }
-
     }
 
 
@@ -316,14 +316,16 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
     }
 
     public void onScale(float scale, PointF point) {
+        if (prepared != Prepare.PREPARED) return;
         scaleToKernel(scale, point);
-        if (prepared == Prepare.PREPARED && configurator.scaleListener != null)
+        if (configurator.scaleListener != null)
             configurator.scaleListener.onScale(scale, point);
     }
 
     public boolean onScroll(float distanceX, float distanceY) {
+        if (prepared != Prepare.PREPARED) return false;
         boolean isScrolled = moveByRelativeKernel(distanceX, distanceY);
-        if (prepared == Prepare.PREPARED && configurator.pageScrollListener != null)
+        if (configurator.pageScrollListener != null)
             configurator.pageScrollListener.onPageScrolled(isScrolled, configurator.pageNumber, distance, distanceX, distanceY);
         return isScrolled;
     }

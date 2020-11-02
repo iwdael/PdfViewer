@@ -6,6 +6,7 @@ import com.hacknife.pdfviewer.cache.CellCache;
 import com.hacknife.pdfviewer.cache.PageCache;
 import com.hacknife.pdfviewer.cache.ThumbnailCache;
 import com.hacknife.pdfviewer.core.PDFCore;
+import com.hacknife.pdfviewer.helper.Logger;
 import com.hacknife.pdfviewer.listener.OnDoubleTapListener;
 import com.hacknife.pdfviewer.listener.OnDrawListener;
 import com.hacknife.pdfviewer.listener.OnErrorListener;
@@ -25,7 +26,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Configurator {
+    public static final String TAG = Configurator.class.getSimpleName();
     protected PdfView view;
+
 
     protected Configurator(PdfView view) {
         this.view = view;
@@ -65,18 +68,42 @@ public class Configurator {
     protected ScaleMode scaleMode = ScaleMode.WIDTH;
     protected ThumbnailPool thumbnailPool;
     protected float thumbnailScale = 0.25f;
-    protected int  thumbnailPatchCount = 3;
-    List<OnThumbnailListener> thumbnailListeners=new ArrayList<>();
+    //缩略图每列碎片个数
+    protected int thumbnailPatchLandscapeCount = 4;
+    protected List<OnThumbnailListener> thumbnailListeners = new ArrayList<>();
+    //容器横向大小
+    protected int pageSize = 0;
+    //缩略图横向大小
+    protected int thumbnailLandscapeSize = 0;
+    //缩略图碎片大小 正方形
+    protected int thumbnailPatchSize = 0;
+    //缩略图碎片总个数
+    protected int thumbnailPatchCount = 0;
+
+    public int thumbnailPatchCount() {
+        return thumbnailPatchCount;
+    }
+
+    public int thumbnailPatchSize() {
+        return thumbnailPatchSize;
+    }
+
+    public int thumbnailLandscapeSize() {
+        return thumbnailLandscapeSize;
+    }
+
+    public int pageSize() {
+        return pageSize;
+    }
+
     public List<OnThumbnailListener> thumbnailListeners() {
         return thumbnailListeners;
     }
+
     public float thumbnailScale() {
         return thumbnailScale;
     }
 
-    public int  thumbnailPatchCount() {
-        return thumbnailPatchCount;
-    }
 
     public ThumbnailPool thumbnailPool() {
         return thumbnailPool;
@@ -96,9 +123,6 @@ public class Configurator {
         return this;
     }
 
-    public int thumbnailCount() {
-        return thumbnailCount;
-    }
 
     public PageCache pageCache() {
         return pageCache;
@@ -260,9 +284,16 @@ public class Configurator {
     }
 
     public void build() {
-        this.thumbnailPool = new ThumbnailPool();
-        view.tryToad(this);
         view.configurator = this;
+        if (view.packSize == null) return;
+        this.packSize.width = view.packSize.width;
+        this.packSize.height = view.packSize.height;
+        this.thumbnailPool = new ThumbnailPool();
+        this.pageSize = (scaleMode == ScaleMode.WIDTH ? packSize.width : packSize.height);
+        this.thumbnailLandscapeSize = (int) (pageSize * thumbnailScale);
+        this.thumbnailPatchSize = (int) (thumbnailLandscapeSize / thumbnailPatchLandscapeCount) + 1;
+        this.thumbnailPatchCount = this.thumbnailPatchLandscapeCount * this.thumbnailPatchLandscapeCount * this.thumbnailCount;
+        view.tryToad(this);
     }
 
 

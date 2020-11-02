@@ -99,7 +99,7 @@ public class MainActivity extends ListActivity {
         // API>=21: intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT); /* launch as a new document */
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET); /* launch as a new document */
         intent.setAction(Intent.ACTION_VIEW);
-        intent.setData(Uri.fromFile(new File("/sdcard/Android_NDK.pdf")));
+        intent.setData(Uri.fromFile(new File("/sdcard/ndk.pdf")));
         startActivity(intent);
         finish();
     }
