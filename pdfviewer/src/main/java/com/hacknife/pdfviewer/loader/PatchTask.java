@@ -34,14 +34,14 @@ public class PatchTask implements Runnable, Comparable<PatchTask> {
         this.configurator = configurator;
         this.thumbnailCache = configurator.thumbnailCache();
         this.createTime = System.currentTimeMillis();
-        Logger.t(TAG).log("create task| page:%d , patchLeft:%d , patchTop:%d , patchRight:%d , patchBottom:%d , scale:%f ,pageSize:%d ", key.page, key.rect.left, key.rect.top, key.rect.right, key.rect.bottom, key.scale, pageSize);
+//        Logger.t(TAG).log("create task| page:%d , patchLeft:%d , patchTop:%d , patchRight:%d , patchBottom:%d , scale:%f ,pageSize:%d ", key.page, key.rect.left, key.rect.top, key.rect.right, key.rect.bottom, key.scale, pageSize);
     }
 
     @Override
     public void run() {
         //检测是否已经加载了
         if (thumbnailCache.achieve(key) != null) {
-            Logger.t(TAG).log("任务已经完成，终结:" + key.toString());
+//            Logger.t(TAG).log("任务已经完成，终结:" + key.toString());
             return;
         }
 
@@ -61,7 +61,7 @@ public class PatchTask implements Runnable, Comparable<PatchTask> {
         patch.page = pdf.pageNumber;
         patch.state = PatchState.PREPARED;//drawBitmap 完成
 //        Logger.t(TAG).log("time:%d , page:%d , patchX:%d , patchY:%d , scale:%f ", (int) (System.currentTimeMillis() - startTime), pdf.pageNumber, patchX, patchY, scale);
-        Logger.t(TAG).log("time:%d , %s", (int) (System.currentTimeMillis() - startTime), patch.toString());
+//        Logger.t(TAG).log("time:%d , %s", (int) (System.currentTimeMillis() - startTime), patch.toString());
         configurator.thumbnailCache().notifyDataChange(patch);
         for (OnThumbnailListener listener : configurator.thumbnailListeners()) {
             if (listener.onThumbnail(patch)) {
@@ -87,5 +87,8 @@ public class PatchTask implements Runnable, Comparable<PatchTask> {
 
     }
 
-
+    @Override
+    public String toString() {
+        return key.toString();
+    }
 }

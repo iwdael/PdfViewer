@@ -3,6 +3,7 @@ package com.hacknife.pdfviewer.model;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 
+import com.artifex.mupdf.fitz.Cookie;
 import com.artifex.mupdf.fitz.Matrix;
 import com.artifex.mupdf.fitz.Page;
 import com.artifex.mupdf.fitz.Rect;
@@ -34,11 +35,14 @@ public class PDF {
         else
             scale = (float) pageSize / (float) (box.y1 - box.y0) * scale;
         ctm.scale(scale, scale);
-        AndroidDrawDevice dev = new AndroidDrawDevice(bm,  offsetX,   offsetY);
-        page.run(dev, ctm, null);
+        AndroidDrawDevice dev = new AndroidDrawDevice(bm, offsetX, offsetY);
+        try {
+            page.run(dev, ctm, new Cookie());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         dev.close();
         dev.destroy();
     }
-
 
 }

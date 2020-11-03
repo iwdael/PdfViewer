@@ -18,8 +18,6 @@ import com.hacknife.pdfviewer.loader.ThumbnailPool;
 import com.hacknife.pdfviewer.model.PDF;
 import com.hacknife.pdfviewer.model.Patch;
 import com.hacknife.pdfviewer.model.PatchKey;
-import com.hacknife.pdfviewer.model.PatchSet;
-import com.hacknife.pdfviewer.model.Size;
 import com.hacknife.pdfviewer.model.SizeF;
 
 public class Page extends View {
@@ -46,14 +44,14 @@ public class Page extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        canvas.drawColor(Color.parseColor("#FF6200EE"));
+//        canvas.drawColor(Color.parseColor("#FF6200EE"));
         drawSeparator(canvas);
         drawThumbnail(canvas);
     }
 
     private void drawSeparator(Canvas canvas) {
         if (pageNumber <= 0) return;
-        canvas.drawRect(0, 0, configurator.scale() * configurator.packSize().width, configurator.space(), separatorPaint);
+        canvas.drawRect(0, 0, configurator.scale() * configurator.packSize().width,separator, separatorPaint);
     }
 
 
@@ -126,8 +124,35 @@ public class Page extends View {
 
     protected void setPage(int pageNumber) {
         this.pageNumber = pageNumber;
+        this.pdfSize = this.configurator.pageCache().getPage(pageNumber).size;
         if (pageNumber > 0) separator = configurator.space();
         else this.separator = 0;
-        this.pdfSize = this.configurator.pageCache().getPage(pageNumber).size;
+    }
+
+
+    protected void checkThumbnail(){
+        if (pageNumber == -1) return;
+        int thumbnailPatchSize = configurator.thumbnailPatchSize();
+        int thumbnailLandscapeSize = configurator.thumbnailLandscapeSize();
+        int thumbnailPortraitSize = (int) (pdfSize.height / pdfSize.width * thumbnailLandscapeSize);
+        for (int portraitSize = 0; portraitSize < thumbnailPortraitSize; ) {
+            for (int landscapeSize = 0; landscapeSize < thumbnailLandscapeSize; ) {
+                key.changeKey(
+                        pageNumber,
+                        landscapeSize,
+                        portraitSize,
+                        landscapeSize + (thumbnailPatchSize + landscapeSize > thumbnailLandscapeSize ? thumbnailLandscapeSize - landscapeSize : thumbnailPatchSize),
+                        portraitSize + (thumbnailPatchSize + portraitSize > thumbnailPortraitSize ? thumbnailPortraitSize - portraitSize : thumbnailPatchSize),
+                        configurator.thumbnailScale()
+                );
+                Patch patch = thumbnailCache.achieve(key);
+                if (patch != null) {
+                } else {
+                    thumbnailPool.push(new PatchTask(key.clone(), configurator.pageSize(), configurator.scaleMode(), configurator));
+                }
+                landscapeSize += thumbnailPatchSize;
+            }
+            portraitSize += thumbnailPatchSize;
+        }
     }
 }

@@ -52,7 +52,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
         super(context, attrs, defStyleAttr);
         dragPinchManager = new DragPinchManager(this);
         displayCell = new HashMap<>();
-        setBackgroundColor(Color.parseColor("#E8FFEB3B"));
+//        setBackgroundColor(Color.parseColor("#E8FFEB3B"));
     }
 
 
@@ -65,15 +65,15 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
     private void layoutCell() {
         if (prepared != Prepare.PREPARED) return;
         int pageCount = configurator.core.pageCount();
-
         for (int page = configurator.pageNumber, height = (int) -distance; height < packSize.height && page < pageCount; page++) {
             Cell cell = displayCell.get(page);
-            if (page==configurator.pageNumber){
+            if (page == configurator.pageNumber) {
                 configurator.thumbnailCache().setCommence(cell.keys()[0]);
             }
-            configurator.thumbnailCache().setClosure(cell.keys()[1]);
             height += cell.size.height;
-
+            if (height >= packSize.height) {
+                configurator.thumbnailCache().setClosure(cell.keys()[1]);
+            }
         }
         for (int page = configurator.pageNumber, height = (int) -distance; height < packSize.height && page < pageCount; page++) {
             Cell cell = displayCell.get(page);
@@ -155,7 +155,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
                 Logger.t(TAG_RECYCLER_SCALE_TOP).log("remove:%d", configurator.pageNumber);
                 Cell rubbish = displayCell.remove(configurator.pageNumber);
                 removeView(rubbish);
-                configurator.cellCache.holdCell(rubbish, configurator.pageNumber, mode);
+                configurator.cellCache.holdCell(rubbish, configurator.pageNumber, mode, false);
                 configurator.pageNumber++;
             } else {
                 this.distance = distance;
@@ -175,7 +175,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
                 Logger.t(TAG_RECYCLER_SCALE_BOTTOM).log("remove:%d", overPage);
                 Cell rubbish = displayCell.remove(overPage);
                 removeView(rubbish);
-                configurator.cellCache.holdCell(rubbish, overPage, mode);
+                configurator.cellCache.holdCell(rubbish, overPage, mode, true);
             }
 
         } else if (distance < this.distance) {//缩小
@@ -286,7 +286,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
                 Cell rubbish = displayCell.remove(bottomRemainingPage);
                 removeView(rubbish);
                 contentChange = true;
-                configurator.cellCache.holdCell(rubbish, configurator.pageNumber - 1, mode);
+                configurator.cellCache.holdCell(rubbish, configurator.pageNumber - 1, mode, true);
             }
         } else if (distanceY > 0) {
             if (bottomRemaining > 0) {
@@ -310,7 +310,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
                 Cell rubbish = displayCell.remove(configurator.pageNumber);
                 removeView(rubbish);
                 contentChange = true;
-                configurator.cellCache.holdCell(rubbish, bottomRemainingPage + 1, mode);
+                configurator.cellCache.holdCell(rubbish, bottomRemainingPage + 1, mode, true);
                 configurator.pageNumber++;
                 relDistance = remaining;
             }
@@ -367,6 +367,7 @@ public class PdfView extends ViewGroup implements PdfLoader.OnPdfLoaderListener 
     }
 
     public void onSingleTap(MotionEvent e) {
+
         if (prepared == Prepare.PREPARED && configurator.tapListener != null)
             configurator.tapListener.onTap(e);
     }

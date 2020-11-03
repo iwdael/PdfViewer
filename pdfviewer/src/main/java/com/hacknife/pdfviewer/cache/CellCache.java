@@ -3,6 +3,7 @@ package com.hacknife.pdfviewer.cache;
 import com.hacknife.pdfviewer.Configurator;
 import com.hacknife.pdfviewer.PdfView;
 import com.hacknife.pdfviewer.helper.Logger;
+import com.hacknife.pdfviewer.helper.TaskFactory;
 import com.hacknife.pdfviewer.widget.Cell;
 import com.hacknife.pdfviewer.state.ScaleMode;
 
@@ -10,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CellCache {
-    public static final String TAG = "cell_cache";
+    public static final String TAG = "CellCache";
     private PdfView context;
     private Configurator configurator;
     private Map<Integer, Cell> cellMap;
@@ -24,17 +25,21 @@ public class CellCache {
 
     public Cell achieveCell(int page, ScaleMode mode) {
         if (cellMap.containsKey(page)) {
-            Logger.t(TAG).log("从缓存读取:%d , mode:%s", page, mode.toString());
-            return cellMap.get(page).loadCell(page, mode);
+            return cellMap.remove(page).loadCell(page, mode);
         } else
             return new Cell(context, configurator).loadCell(page, mode);
     }
 
-    public void holdCell(Cell cell, int page, ScaleMode mode) {
-        Logger.t(TAG).log("保存到缓存:%d , mode:%s", page, mode.toString());
+    public void holdCell(Cell cell, int page, ScaleMode mode, boolean bottom) {
         if (!cellMap.containsKey(page) && page >= 0 && page < configurator.core().pageCount()) {
             cell.loadCell(page, mode);
             cellMap.put(page, cell);
+            if (bottom && page + 1 < configurator.core().pageCount()) {
+                TaskFactory.createThumbnailPageTask(configurator, page + 1);
+            }
+            if (!bottom && page - 1 >= 0) {
+                TaskFactory.createThumbnailPageTask(configurator, page - 1);
+            }
         }
     }
 

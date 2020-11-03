@@ -58,16 +58,16 @@ public class Configurator {
     protected float scale = 1f;
     protected Size packSize = new Size(0, 0);
     protected int pageNumber;
-    protected int space = 2;
-    //    protected int spaceColor = Color.parseColor("#FF000000");
-    protected int spaceColor = Color.parseColor("#F70FFFE8");
+    protected int space = 1;
+    protected int spaceColor = Color.parseColor("#FF000000");
+    //    protected int spaceColor = Color.parseColor("#F70FFFE8");
     protected ThumbnailCache thumbnailCache;
     protected PageCache pageCache;
     protected CellCache cellCache;
     protected int thumbnailCount = 10;
     protected ScaleMode scaleMode = ScaleMode.WIDTH;
     protected ThumbnailPool thumbnailPool;
-    protected float thumbnailScale = 0.25f;
+    protected float thumbnailScale = 1 / 4f;
     //缩略图每列碎片个数
     protected int thumbnailPatchLandscapeCount = 4;
     protected List<OnThumbnailListener> thumbnailListeners = new ArrayList<>();
@@ -122,7 +122,6 @@ public class Configurator {
         this.thumbnailCount = thumbnailCount;
         return this;
     }
-
 
 
     public PageCache pageCache() {
@@ -289,7 +288,7 @@ public class Configurator {
         if (view.packSize == null) return;
         this.packSize.width = view.packSize.width;
         this.packSize.height = view.packSize.height;
-        this.thumbnailPool = new ThumbnailPool();
+        this.thumbnailPool = new ThumbnailPool(this);
         this.pageSize = (scaleMode == ScaleMode.WIDTH ? packSize.width : packSize.height);
         this.thumbnailLandscapeSize = (int) (pageSize * thumbnailScale);
         this.thumbnailPatchSize = (int) (thumbnailLandscapeSize / thumbnailPatchLandscapeCount) + 1;

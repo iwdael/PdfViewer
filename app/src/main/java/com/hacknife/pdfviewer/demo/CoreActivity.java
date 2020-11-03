@@ -34,7 +34,7 @@ public class CoreActivity extends AppCompatActivity {
                     .rollingDirection(Direction.HORIZONTAL)
 //                    .pageNumber(2)
 //                    .scale(2)
-                    .space(50)
+//                    .space(50)
                     .transverseEnable(false)
                     .onLongPress(e -> view.getConfigurator().transverseEnable(!view.getConfigurator().transverseEnable()))
                     .onError(t -> Logger.t("").log("error:"+t.toString()))

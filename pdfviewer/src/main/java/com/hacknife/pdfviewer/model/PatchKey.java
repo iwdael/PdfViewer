@@ -1,9 +1,6 @@
 package com.hacknife.pdfviewer.model;
 
-import android.graphics.Bitmap;
 import android.graphics.Rect;
-
-import com.hacknife.pdfviewer.state.PatchState;
 
 import java.util.Objects;
 

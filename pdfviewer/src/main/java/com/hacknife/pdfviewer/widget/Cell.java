@@ -23,12 +23,9 @@ public class Cell extends Page implements OnThumbnailListener {
     private ScaleMode pageMode;
     public Size size = new Size(0, 0);
 
-    private Size willBitmapSize = new Size(0, 0);
-    private PdfView context;
 
     public Cell(@NonNull PdfView context, Configurator configurator) {
         super(context.getContext(), configurator);
-        this.context = context;
         configurator.thumbnailListeners().add(this);
     }
 
@@ -44,9 +41,6 @@ public class Cell extends Page implements OnThumbnailListener {
         if (pageNumber != 0) measureSize.height += configurator.space();
         if (this.size == null || (!(this.size.equals(measureSize)))) {
             this.size = measureSize;
-
-            willBitmapSize.width = this.size.width;
-            willBitmapSize.height = this.size.height - (pageNumber != 0 ? configurator.space() : 0);
             return true;
         }
         return false;
@@ -72,6 +66,7 @@ public class Cell extends Page implements OnThumbnailListener {
 
     public void layoutKeep(int l, int t, int r, int b) {
         layout(l, t, r, b);
+        checkThumbnail();
     }
 
 
