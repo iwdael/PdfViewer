@@ -33,7 +33,7 @@ public class PdfLoader extends AsyncTask<Configurator, Void, Void> {
         }
         configurator.pageCache(pageCache);
         //加载缩略图
-        configurator.thumbnailCache(new ThumbnailCache());
+        configurator.thumbnailCache(new ThumbnailCache(configurator));
         TaskFactory.createThumbnailTask(configurator);
 
         return null;

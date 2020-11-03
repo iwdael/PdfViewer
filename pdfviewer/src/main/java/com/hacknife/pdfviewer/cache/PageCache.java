@@ -13,18 +13,18 @@ public class PageCache {
     public PageCache() {
         this.pages = new HashMap<>();
     }
-    public PageCache put(int page, PDF p){
-        this.pages.put(page,p);
+
+    public PageCache put(int page, PDF p) {
+        this.pages.put(page, p);
         return this;
     }
 
-    public PDF getPage(int page){
-//        Logger.t("page_cache").log("read:%d",page);
+    public PDF getPage(int page) {
         return this.pages.get(page);
     }
 
     @Override
     public String toString() {
-        return  pages.toString();
+        return pages.toString();
     }
 }

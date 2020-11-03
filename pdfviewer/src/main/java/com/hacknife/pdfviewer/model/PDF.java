@@ -24,7 +24,6 @@ public class PDF {
         Rect b = page.getBounds();
         this.bounds = new RectF(b.x0, b.y0, b.x1, b.y1);
         this.size = new SizeF(bounds.width(), bounds.height());
-
     }
 
     public synchronized void drawBitmap(Bitmap bm, int pageSize, ScaleMode mode, int offsetX, int offsetY, float scale) {
