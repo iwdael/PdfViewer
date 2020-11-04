@@ -97,7 +97,7 @@ public class TaskFactory {
 
     //反向 起始
     public static void createThumbnailPatchTask(Configurator configurator, int pageNumber, int originate, int patchCount, boolean reverse) {
-         SizeF pdfSize = configurator.pageCache().getPage(pageNumber).size;
+        SizeF pdfSize = configurator.pageCache().getPage(pageNumber).size;
         ThumbnailPool thumbnailPool = configurator.thumbnailPool();
         int thumbnailPatchSize = configurator.thumbnailPatchSize();
         int thumbnailLandscapeSize = configurator.thumbnailLandscapeSize();
@@ -109,19 +109,21 @@ public class TaskFactory {
                     int right = landscapeSize + (thumbnailPatchSize + landscapeSize > thumbnailLandscapeSize ? thumbnailLandscapeSize - landscapeSize : thumbnailPatchSize);
                     int bottom = portraitSize + (thumbnailPatchSize + portraitSize > thumbnailPortraitSize ? thumbnailPortraitSize - portraitSize : thumbnailPatchSize);
                     if (count >= originate) {
+                        PatchKey key = new PatchKey(
+                                pageNumber,
+                                landscapeSize,
+                                portraitSize,
+                                right,
+                                bottom,
+                                configurator.thumbnailScale()
+                        );
                         thumbnailPool.push(new PatchTask(
-                                new PatchKey(
-                                        pageNumber,
-                                        landscapeSize,
-                                        portraitSize,
-                                        right,
-                                        bottom,
-                                        configurator.thumbnailScale()
-                                ),
+                                key,
                                 configurator.pageSize(),
                                 configurator.scaleMode(),
                                 configurator
                         ));
+//                        Logger.t(TAG).log("createThumbnailPatchTask:" + key.toString());
                     }
                     count++;
                     if (count - originate >= patchCount) return;//完结
@@ -136,26 +138,122 @@ public class TaskFactory {
                     int bottom = Math.min(portraitSize, thumbnailPortraitSize);
 
                     if (count >= originate) {
+                        PatchKey key = new PatchKey(
+                                pageNumber,
+                                landscapeSize - thumbnailPatchSize,
+                                portraitSize - thumbnailPatchSize,
+                                right,
+                                bottom,
+                                configurator.thumbnailScale()
+                        );
                         thumbnailPool.push(new PatchTask(
-                                new PatchKey(
-                                        pageNumber,
-                                        landscapeSize - thumbnailPatchSize,
-                                        portraitSize - thumbnailPatchSize,
-                                        right,
-                                        bottom,
-                                        configurator.thumbnailScale()
-                                ),
+                                key,
                                 configurator.pageSize(),
                                 configurator.scaleMode(),
                                 configurator
                         ));
-
+//                        Logger.t(TAG).log("createThumbnailPatchTask:" + key.toString());
                     }
                     count++;
                     if (count - originate >= patchCount) return;//完结
                     landscapeSize -= thumbnailPatchSize;
                 }
                 portraitSize -= thumbnailPatchSize;
+            }
+        }
+        //能运行到这里说明 还没有达到预期加载数量
+        if (!reverse) {//正序
+            if (pageNumber + 1 < configurator.core().pageCount()) {
+                createThumbnailPatchTask(configurator, pageNumber+1, 0, patchCount - count, false);
+            } else {
+                Logger.t(TAG).log("页面超出正常范围：" + (pageNumber + 1));
+            }
+        } else {//逆序
+            if (pageNumber - 1 >= 0) {
+                createThumbnailPatchTask(configurator, pageNumber-1, 0, patchCount - count, true);
+            } else {
+                Logger.t(TAG).log("页面超出正常范围：" + (pageNumber - 1));
+            }
+        }
+    }
+
+    public static void createThumbnailPatchTask(Configurator configurator, PatchKey originate, int patchCount, boolean reverse) {
+        int pageNumber = originate.page;
+        SizeF pdfSize = configurator.pageCache().getPage(pageNumber).size;
+        ThumbnailPool thumbnailPool = configurator.thumbnailPool();
+        int thumbnailPatchSize = configurator.thumbnailPatchSize();
+        int thumbnailLandscapeSize = configurator.thumbnailLandscapeSize();
+        int thumbnailPortraitSize = (int) (pdfSize.height / pdfSize.width * thumbnailLandscapeSize);
+        int count = 0;
+        if (!reverse) { //正序
+            for (int portraitSize = 0; portraitSize < thumbnailPortraitSize; ) {
+                for (int landscapeSize = 0; landscapeSize < thumbnailLandscapeSize; ) {
+                    int right = landscapeSize + (thumbnailPatchSize + landscapeSize > thumbnailLandscapeSize ? thumbnailLandscapeSize - landscapeSize : thumbnailPatchSize);
+                    int bottom = portraitSize + (thumbnailPatchSize + portraitSize > thumbnailPortraitSize ? thumbnailPortraitSize - portraitSize : thumbnailPatchSize);
+                    PatchKey key = new PatchKey(
+                            pageNumber,
+                            landscapeSize,
+                            portraitSize,
+                            right,
+                            bottom,
+                            configurator.thumbnailScale()
+                    );
+                    if (key.compareTo(originate) > 0) {
+                        thumbnailPool.push(new PatchTask(
+                                key,
+                                configurator.pageSize(),
+                                configurator.scaleMode(),
+                                configurator
+                        ));
+//                        Logger.t(TAG).log("createThumbnailPatchTask:" + key.toString());
+                        count++;
+                    }
+                    if (count >= patchCount) return;//完结
+                    landscapeSize += thumbnailPatchSize;
+                }
+                portraitSize += thumbnailPatchSize;
+            }
+        } else { //逆序
+            for (int portraitSize = (((int) thumbnailPortraitSize / thumbnailPatchSize) + 1) * thumbnailPatchSize; portraitSize > 0; ) {
+                for (int landscapeSize = (((int) thumbnailLandscapeSize / thumbnailPatchSize) + 1) * thumbnailPatchSize; landscapeSize > 0; ) {
+                    int right = Math.min(landscapeSize, thumbnailLandscapeSize);
+                    int bottom = Math.min(portraitSize, thumbnailPortraitSize);
+                    PatchKey key = new PatchKey(
+                            pageNumber,
+                            landscapeSize - thumbnailPatchSize,
+                            portraitSize - thumbnailPatchSize,
+                            right,
+                            bottom,
+                            configurator.thumbnailScale()
+                    );
+                    if (key.compareTo(originate) < 0) {
+                        thumbnailPool.push(new PatchTask(
+                                key,
+                                configurator.pageSize(),
+                                configurator.scaleMode(),
+                                configurator
+                        ));
+//                        Logger.t(TAG).log("createThumbnailPatchTask:" + key.toString());
+                        count++;
+                    }
+                    if (count >= patchCount) return;//完结
+                    landscapeSize -= thumbnailPatchSize;
+                }
+                portraitSize -= thumbnailPatchSize;
+            }
+        }
+        //能运行到这里说明 还没有达到预期加载数量
+        if (!reverse) {//正序
+            if (pageNumber + 1 < configurator.core().pageCount()) {
+                createThumbnailPatchTask(configurator, pageNumber + 1 , 0, patchCount - count, false);
+            } else {
+                Logger.t(TAG).log("PatchKey页面超出正常范围：" + (pageNumber + 1));
+            }
+        } else {//逆序
+            if (pageNumber - 1 >= 0) {
+                createThumbnailPatchTask(configurator, pageNumber-1, 0, patchCount - count, true);
+            } else {
+                Logger.t(TAG).log("PatchKey页面超出正常范围：" + (pageNumber - 1));
             }
         }
     }

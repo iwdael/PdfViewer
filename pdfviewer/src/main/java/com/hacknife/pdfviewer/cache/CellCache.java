@@ -34,12 +34,6 @@ public class CellCache {
         if (!cellMap.containsKey(page) && page >= 0 && page < configurator.core().pageCount()) {
             cell.loadCell(page, mode);
             cellMap.put(page, cell);
-            if (bottom && page + 1 < configurator.core().pageCount()) {
-                TaskFactory.createThumbnailPageTask(configurator, page + 1);
-            }
-            if (!bottom && page - 1 >= 0) {
-                TaskFactory.createThumbnailPageTask(configurator, page - 1);
-            }
         }
     }
 
