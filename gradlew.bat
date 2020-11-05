@@ -1,3 +1,22 @@
+@REM
+@REM Copyright 2014 Joan Zapata
+@REM
+@REM This file is part of Android-pdfview.
+@REM
+@REM Android-pdfview is free software: you can redistribute it and/or modify
+@REM it under the terms of the GNU General Public License as published by
+@REM the Free Software Foundation, either version 3 of the License, or
+@REM (at your option) any later version.
+@REM
+@REM Android-pdfview is distributed in the hope that it will be useful,
+@REM but WITHOUT ANY WARRANTY; without even the implied warranty of
+@REM MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+@REM GNU General Public License for more details.
+@REM
+@REM You should have received a copy of the GNU General Public License
+@REM along with Android-pdfview.  If not, see <http://www.gnu.org/licenses/>.
+@REM
+
 @if "%DEBUG%" == "" @echo off
 @rem ##########################################################################
 @rem
@@ -8,13 +27,13 @@
 @rem Set local scope for the variables with windows NT shell
 if "%OS%"=="Windows_NT" setlocal
 
+@rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
+set DEFAULT_JVM_OPTS=
+
 set DIRNAME=%~dp0
 if "%DIRNAME%" == "" set DIRNAME=.
 set APP_BASE_NAME=%~n0
 set APP_HOME=%DIRNAME%
-
-@rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
-set DEFAULT_JVM_OPTS=
 
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome
@@ -46,9 +65,10 @@ echo location of your Java installation.
 goto fail
 
 :init
-@rem Get command-line arguments, handling Windows variants
+@rem Get command-line arguments, handling Windowz variants
 
 if not "%OS%" == "Windows_NT" goto win9xME_args
+if "%@eval[2+2]" == "4" goto 4NT_args
 
 :win9xME_args
 @rem Slurp the command line arguments.
@@ -59,6 +79,11 @@ set _SKIP=2
 if "x%~1" == "x" goto execute
 
 set CMD_LINE_ARGS=%*
+goto execute
+
+:4NT_args
+@rem Get arguments from the 4NT Shell from JP Software
+set CMD_LINE_ARGS=%$
 
 :execute
 @rem Setup the command line

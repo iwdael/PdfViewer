@@ -1,27 +1,13 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
 buildscript {
-    ext.buildConfig = [
-            'compileSdkVersion': 29,
-            'minSdkVersion'    : 19,
-            'targetSdkVersion' : 29,
-            'versionCode'      : 1,
-            'versionName'      : '1.0',
-    ]
-    ext.bintray = [
-            'userOrg'       : 'hacknife',
-            'groupId'       : 'com.hacknife',
-            'publishVersion': '1.0.0',
-            'desc'          : '',
-            'website'       : 'https://github.com/hacknife/pdfviewer',
-    ]
     repositories {
         google()
         jcenter()
-
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:3.0.1"
-        classpath 'com.novoda:bintray-release:0.8.0'
+        classpath 'com.android.tools.build:gradle:3.4.2'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
     }
 }
 
@@ -32,12 +18,4 @@ allprojects {
         maven { url 'http://maven.ghostscript.com' }
 
     }
-    tasks.withType(Javadoc) {
-        options.addStringOption('Xdoclint:none', '-quiet')
-        options.addStringOption('encoding', 'UTF-8')
-    }
-}
-
-task clean(type: Delete) {
-    delete rootProject.buildDir
 }
