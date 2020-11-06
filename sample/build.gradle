@@ -1,34 +1,25 @@
-buildscript {
-    repositories {
-        google()
-        jcenter()
-    }
-}
-
-repositories {
-    google()
-    jcenter()
-}
-
 apply plugin: 'com.android.application'
+apply from: './../config.gradle'
 
 android {
-    compileSdkVersion 28
-
+    buildToolsVersion buidConfig.buildToolsVersion
+    compileSdkVersion buidConfig.compileSdkVersion
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 28
-        versionCode 3
-        versionName "3.0.0"
+        minSdkVersion buidConfig.minSdkVersion
+        targetSdkVersion buidConfig.targetSdkVersion
+        versionCode buidConfig.versionCode
+        versionName buidConfig.versionName
     }
 
 }
 
 dependencies {
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'org.androidannotations:androidannotations-api:4.6.0'
+    annotationProcessor "org.androidannotations:androidannotations:4.6.0"
     implementation project(':viewer')
     implementation project(':core')
     implementation project(':core-mupdf')
-    implementation 'androidx.appcompat:appcompat:1.0.0'
-    implementation 'org.androidannotations:androidannotations-api:4.6.0'
-    annotationProcessor "org.androidannotations:androidannotations:4.6.0"
+    implementation project(':core-pdfium')
+
 }

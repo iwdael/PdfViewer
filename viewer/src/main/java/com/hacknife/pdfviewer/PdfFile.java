@@ -330,12 +330,10 @@ class PdfFile {
     }
 
     public Meta getMetaData() {
-
         return coreSource.getDocumentMeta();
     }
 
     public List<Bookmark> getBookmarks() {
-
         return coreSource.getTableOfContents();
     }
 

@@ -16,10 +16,15 @@
 package com.hacknife.pdfviewer.core.pdfium.source;
 
 import android.content.Context;
+import android.os.ParcelFileDescriptor;
 
 import com.hacknife.pdfviewer.core.CoreSource;
 import com.hacknife.pdfviewer.core.DocumentSource;
+import com.hacknife.pdfviewer.core.pdfium.kernel.PdfCoreSource;
+import com.hacknife.pdfviewer.core.pdfium.util.FileUtils;
+import com.shockwave.pdfium.PdfiumCore;
 
+import java.io.File;
 import java.io.IOException;
 
 public class ByteArraySource implements DocumentSource {
@@ -30,13 +35,10 @@ public class ByteArraySource implements DocumentSource {
         this.data = data;
     }
 
-//    @Override
-//    public DocumentSource createDocument(Context context, CoreSource core, String password) throws IOException {
-//        return core.newDocument(data, password);
-//    }
 
     @Override
     public CoreSource createCore(Context context, String password) throws IOException {
-        return null;
+        PdfiumCore pdfiumCore = new PdfiumCore(context);
+        return PdfCoreSource.create(pdfiumCore.newDocument(data, password), pdfiumCore);
     }
 }

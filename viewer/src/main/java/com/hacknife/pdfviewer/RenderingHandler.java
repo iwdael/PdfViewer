@@ -98,7 +98,6 @@ class RenderingHandler extends Handler {
 
         Bitmap render;
         try {
-            Log.v("dzq", "create bitmap：" + w + "," + h);
             render = Bitmap.createBitmap(w, h, renderingTask.bestQuality ? Bitmap.Config.ARGB_8888 : Bitmap.Config.ARGB_8888);
         } catch (IllegalArgumentException e) {
             Log.e(TAG, "Cannot create bitmap", e);

@@ -13,32 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.hacknife.pdfviewer.core.pdfium.source;
+package com.hacknife.pdfviewer.core.mupdf.source;
+
 
 import android.content.Context;
+import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 
 import com.hacknife.pdfviewer.core.CoreSource;
 import com.hacknife.pdfviewer.core.DocumentSource;
-import com.hacknife.pdfviewer.core.pdfium.kernel.PdfCoreSource;
-import com.shockwave.pdfium.PdfiumCore;
+import com.hacknife.pdfviewer.core.mupdf.kernel.PdfCoreSource;
+import com.hacknife.pdfviewer.core.mupdf.kernel.PdfDocument;
+import com.hacknife.pdfviewer.core.mupdf.util.Util;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
-public class PathSource implements DocumentSource {
+public class InputStreamSource implements DocumentSource {
 
-    private String file;
+    private InputStream stream;
 
-    public PathSource(String file) {
-        this.file = file;
+    public InputStreamSource(InputStream stream) {
+        this.stream = stream;
     }
-
 
     @Override
     public CoreSource createCore(Context context, String password) throws IOException {
-        ParcelFileDescriptor pfd = ParcelFileDescriptor.open(new File(file), ParcelFileDescriptor.MODE_READ_ONLY);
-        PdfiumCore pdfiumCore = new PdfiumCore(context);
-        return PdfCoreSource.create(pdfiumCore.newDocument(pfd, password), pdfiumCore);
+        PdfDocument document   = PdfDocument.openDocument(Util.toByteArray(stream), "pdf");
+        if (document.needsPassword() && password != null) document.authenticatePassword(password);
+        return new PdfCoreSource(document);
     }
 }

@@ -271,6 +271,22 @@ public class PDFView extends RelativeLayout {
      */
     private boolean hasSize = false;
 
+
+    /**
+     * 是否支持放缩
+     */
+    private boolean enableScale = true;
+
+    /**
+     * 是否支持水平滚动
+     */
+    private boolean enableScrollHorizontal = true;
+
+    /**
+     * 是否支持垂直滚动
+     */
+    private boolean enableScrollVertical = true;
+
     /**
      * Holds last used Configurator that should be loaded when view has size
      */
@@ -279,6 +295,7 @@ public class PDFView extends RelativeLayout {
     /**
      * Construct the initial view
      */
+
     public PDFView(Context context, AttributeSet set) {
         super(context, set);
 
@@ -311,7 +328,7 @@ public class PDFView extends RelativeLayout {
 
         recycled = false;
         // Start decoding document
-        decodingAsyncTask = new DecodingAsyncTask(docSource, password, userPages, this );
+        decodingAsyncTask = new DecodingAsyncTask(docSource, password, userPages, this);
         decodingAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
@@ -654,15 +671,12 @@ public class PDFView extends RelativeLayout {
         // Moves the canvas before drawing any element
         float currentXOffset = this.currentXOffset;
         float currentYOffset = this.currentYOffset;
-        Log.v("dzq", "currentXOffset:" + currentXOffset + ", currentYOffset:" + currentYOffset);
         canvas.translate(currentXOffset, currentYOffset);
-        Log.v("dzq", "Draws thumbnails");
         // Draws thumbnails
         for (PagePart part : cacheManager.getThumbnails()) {
             drawPart(canvas, part);
 
         }
-        Log.v("dzq", "Draws parts");
         // Draws parts
         for (PagePart part : cacheManager.getPageParts()) {
             drawPart(canvas, part);
@@ -732,7 +746,6 @@ public class PDFView extends RelativeLayout {
             localTranslationY = toCurrentScale(maxHeight - size.getHeight()) / 2;
         }
         canvas.translate(localTranslationX, localTranslationY);
-        Log.v("dzq", "localTranslationX:" + localTranslationX + " , localTranslationY:" + localTranslationY + " , width:" + renderedBitmap.getWidth() + " , height:" + renderedBitmap.getHeight());
         Rect srcRect = new Rect(0, 0, renderedBitmap.getWidth(), renderedBitmap.getHeight());
 
         float offsetX = toCurrentScale(pageRelativeBounds.left * size.getWidth());
@@ -1300,6 +1313,30 @@ public class PDFView extends RelativeLayout {
         this.pageSnap = pageSnap;
     }
 
+    public void enableScrollVertical(boolean enableScrollVertical) {
+        this.enableScrollVertical = enableScrollVertical;
+    }
+
+    public void enableScrollHorizontal(boolean enableScrollHorizontal) {
+        this.enableScrollHorizontal = enableScrollHorizontal;
+    }
+
+    public void enableScale(boolean enableScale) {
+        this.enableScale = enableScale;
+    }
+
+    public boolean isEnableScale() {
+        return enableScale;
+    }
+
+    public boolean isEnableScrollHorizontal() {
+        return enableScrollHorizontal;
+    }
+
+    public boolean isEnableScrollVertical() {
+        return enableScrollVertical;
+    }
+
     public boolean doRenderDuringScale() {
         return renderDuringScale;
     }
@@ -1401,6 +1438,9 @@ public class PDFView extends RelativeLayout {
         private boolean pageSnap = false;
 
         private boolean nightMode = false;
+        private boolean enableScale = true;
+        private boolean enableScrollHorizontal = true;
+        private boolean enableScrollVertical = true;
 
         private Configurator(DocumentSource documentSource) {
             this.documentSource = documentSource;
@@ -1408,6 +1448,21 @@ public class PDFView extends RelativeLayout {
 
         public Configurator pages(int... pageNumbers) {
             this.pageNumbers = pageNumbers;
+            return this;
+        }
+
+        public Configurator enableScrollVertical(boolean enableScrollVertical) {
+            this.enableScrollVertical = enableScrollVertical;
+            return this;
+        }
+
+        public Configurator enableScrollHorizontal(boolean enableScrollHorizontal) {
+            this.enableScrollHorizontal = enableScrollHorizontal;
+            return this;
+        }
+
+        public Configurator enableScale(boolean enableScale) {
+            this.enableScale = enableScale;
             return this;
         }
 
@@ -1577,7 +1632,9 @@ public class PDFView extends RelativeLayout {
             PDFView.this.setFitEachPage(fitEachPage);
             PDFView.this.setPageSnap(pageSnap);
             PDFView.this.setPageFling(pageFling);
-
+            PDFView.this.enableScale(enableScale);
+            PDFView.this.enableScrollHorizontal(enableScrollHorizontal);
+            PDFView.this.enableScrollVertical(enableScrollVertical);
             if (pageNumbers != null) {
                 PDFView.this.load(documentSource, password, pageNumbers);
             } else {
@@ -1585,4 +1642,6 @@ public class PDFView extends RelativeLayout {
             }
         }
     }
+
+
 }

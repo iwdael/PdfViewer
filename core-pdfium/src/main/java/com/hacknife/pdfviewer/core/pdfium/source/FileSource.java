@@ -20,6 +20,8 @@ import android.os.ParcelFileDescriptor;
 
 import com.hacknife.pdfviewer.core.CoreSource;
 import com.hacknife.pdfviewer.core.DocumentSource;
+import com.hacknife.pdfviewer.core.pdfium.kernel.PdfCoreSource;
+import com.shockwave.pdfium.PdfiumCore;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,14 +34,11 @@ public class FileSource implements DocumentSource {
         this.file = file;
     }
 
-//    @Override
-//    public DocumentSource createDocument(Context context, CoreSource core, String password) throws IOException {
-//        ParcelFileDescriptor pfd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
-//        return core.newDocument(pfd, password);
-//    }
 
     @Override
     public CoreSource createCore(Context context, String password) throws IOException {
-        return null;
+        ParcelFileDescriptor pfd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
+        PdfiumCore pdfiumCore = new PdfiumCore(context);
+        return PdfCoreSource.create(pdfiumCore.newDocument(pfd, password), pdfiumCore);
     }
 }

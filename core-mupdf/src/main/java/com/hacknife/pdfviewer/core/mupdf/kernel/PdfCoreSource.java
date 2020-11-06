@@ -1,8 +1,7 @@
-package com.hacknife.pdfviewwe.core.mupdf.kernel;
+package com.hacknife.pdfviewer.core.mupdf.kernel;
 
 import android.graphics.Bitmap;
 import android.graphics.RectF;
-import android.os.ParcelFileDescriptor;
 
 import com.artifex.mupdf.fitz.Matrix;
 import com.artifex.mupdf.fitz.Page;
@@ -45,15 +44,15 @@ public class PdfCoreSource implements CoreSource {
     }
 
     public Meta getDocumentMeta() {
-        return new Meta();
+        return document.getDocumentMeta();
     }
 
     public List<Bookmark> getTableOfContents() {
-        return new ArrayList<>();
+        return document.getTableOfContents();
     }
 
     public List<Link> getPageLinks(int docPage) {
-        return new ArrayList<>();
+        return document.getPageLinks(docPage);
     }
 
     public RectF mapRectToDevice(int docPage, int startX, int startY, int sizeX, int sizeY, int i, RectF rect) {

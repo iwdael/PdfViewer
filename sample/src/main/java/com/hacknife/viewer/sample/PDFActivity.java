@@ -6,9 +6,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.hacknife.pdfviewer.PDFView;
+
+import com.hacknife.pdfviewer.core.mupdf.source.AssetSource;
 import com.hacknife.pdfviewer.scroll.DefaultScrollHandle;
 import com.hacknife.pdfviewer.util.FitPolicy;
-import com.hacknife.pdfviewwe.core.mupdf.source.PathSource;
 
 public class PDFActivity extends AppCompatActivity {
 
@@ -17,7 +18,7 @@ public class PDFActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pdf);
         PDFView pdfView = findViewById(R.id.pdfView);
-        pdfView.fromSource(new PathSource("/sdcard/ndk.pdf"))
+        pdfView.fromSource(new AssetSource("sample.pdf"))
                 .defaultPage(0)
                 .enableAnnotationRendering(true)
                 .swipeHorizontal(false)
@@ -25,7 +26,6 @@ public class PDFActivity extends AppCompatActivity {
                 .scrollHandle(new DefaultScrollHandle(this))
                 .spacing(0) // in dp
                 .pageFitPolicy(FitPolicy.WIDTH)
-
                 .load();
     }
 }

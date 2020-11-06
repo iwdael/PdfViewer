@@ -1,11 +1,19 @@
-package com.hacknife.pdfviewwe.core.mupdf.kernel;
+package com.hacknife.pdfviewer.core.mupdf.kernel;
+
+import android.util.Log;
 
 import com.artifex.mupdf.fitz.Document;
 import com.artifex.mupdf.fitz.Page;
 import com.artifex.mupdf.fitz.Rect;
 import com.artifex.mupdf.fitz.SeekableInputStream;
 import com.artifex.mupdf.fitz.SeekableOutputStream;
+import com.hacknife.pdfviewer.core.model.Bookmark;
+import com.hacknife.pdfviewer.core.model.Link;
+import com.hacknife.pdfviewer.core.model.Meta;
 import com.hacknife.pdfviewer.core.model.Size;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PdfDocument {
     private Document document;
@@ -42,6 +50,7 @@ public class PdfDocument {
     }
 
     public static PdfDocument openDocument(byte[] buffer, String magic) {
+        Log.v("dzq", "openDocument: buffer " + buffer.length);
         return new PdfDocument(Document.openDocument(buffer, magic));
     }
 
@@ -84,5 +93,27 @@ public class PdfDocument {
 
     public Page getPage(int pageNumber) {
         return document.loadPage(pageNumber);
+    }
+
+    public Meta getDocumentMeta() {
+        Meta meta = new Meta();
+        meta.setTitle(document.getMetaData("info:Title"));
+        meta.setAuthor(document.getMetaData("info:Author"));
+        meta.setSubject(document.getMetaData("info:Subject"));
+        meta.setKeywords(document.getMetaData("info:Keywords"));
+        meta.setCreator(document.getMetaData("info:Creator"));
+        meta.setProducer(document.getMetaData("info:Producer"));
+        meta.setCreationDate(document.getMetaData("info:CreationDate"));
+        meta.setModDate(document.getMetaData("info:ModDate"));
+        return meta;
+    }
+
+    public List<Bookmark> getTableOfContents() {
+//        return document.findBookmark();
+        return new ArrayList<>();
+    }
+
+    public List<Link> getPageLinks(int page) {
+        return new ArrayList<>();
     }
 }

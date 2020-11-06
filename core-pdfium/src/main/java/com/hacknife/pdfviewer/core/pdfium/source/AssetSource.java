@@ -22,28 +22,26 @@ import android.os.ParcelFileDescriptor;
 
 import com.hacknife.pdfviewer.core.CoreSource;
 import com.hacknife.pdfviewer.core.DocumentSource;
+import com.hacknife.pdfviewer.core.pdfium.kernel.PdfCoreSource;
 import com.hacknife.pdfviewer.core.pdfium.util.FileUtils;
+import com.shockwave.pdfium.PdfiumCore;
 
 import java.io.File;
 import java.io.IOException;
 
-public class AssetSource implements  DocumentSource {
+public class AssetSource implements DocumentSource {
 
     private final String assetName;
 
     public AssetSource(String assetName) {
         this.assetName = assetName;
     }
-//
-//    @Override
-//    public DocumentSource createDocument(Context context, CoreSource core, String password) throws IOException {
-//        File f = FileUtils.fileFromAsset(context, assetName);
-//        ParcelFileDescriptor pfd = ParcelFileDescriptor.open(f, ParcelFileDescriptor.MODE_READ_ONLY);
-//        return core.newDocument(pfd, password);
-//    }
 
     @Override
     public CoreSource createCore(Context context, String password) throws IOException {
-        return null;
+        File f = FileUtils.fileFromAsset(context, assetName);
+        ParcelFileDescriptor pfd = ParcelFileDescriptor.open(f, ParcelFileDescriptor.MODE_READ_ONLY);
+        PdfiumCore pdfiumCore = new PdfiumCore(context);
+        return PdfCoreSource.create(pdfiumCore.newDocument(pfd, password), pdfiumCore);
     }
 }

@@ -1,12 +1,12 @@
-package com.hacknife.pdfviewwe.core.mupdf.source;
+package com.hacknife.pdfviewer.core.mupdf.source;
 
 import android.content.Context;
 
 import com.artifex.mupdf.fitz.SeekableInputStream;
 import com.hacknife.pdfviewer.core.CoreSource;
 import com.hacknife.pdfviewer.core.DocumentSource;
-import com.hacknife.pdfviewwe.core.mupdf.kernel.PdfCoreSource;
-import com.hacknife.pdfviewwe.core.mupdf.kernel.PdfDocument;
+import com.hacknife.pdfviewer.core.mupdf.kernel.PdfCoreSource;
+import com.hacknife.pdfviewer.core.mupdf.kernel.PdfDocument;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -48,7 +48,7 @@ public class RandomAccessFileSource implements SeekableInputStream, DocumentSour
 
     @Override
     public CoreSource createCore(Context context, String password) throws IOException {
-        PdfDocument document = PdfDocument.openDocument(this, null);
+        PdfDocument document = PdfDocument.openDocument(this, "pdf");
         if (document.needsPassword() && password != null) document.authenticatePassword(password);
         return new PdfCoreSource(document);
     }

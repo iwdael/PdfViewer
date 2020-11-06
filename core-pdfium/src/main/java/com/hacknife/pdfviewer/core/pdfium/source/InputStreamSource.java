@@ -16,12 +16,14 @@
 package com.hacknife.pdfviewer.core.pdfium.source;
 
 import android.content.Context;
-
+import android.os.ParcelFileDescriptor;
 
 
 import com.hacknife.pdfviewer.core.CoreSource;
 import com.hacknife.pdfviewer.core.DocumentSource;
+import com.hacknife.pdfviewer.core.pdfium.kernel.PdfCoreSource;
 import com.hacknife.pdfviewer.core.pdfium.util.Util;
+import com.shockwave.pdfium.PdfiumCore;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,13 +36,11 @@ public class InputStreamSource implements DocumentSource {
         this.inputStream = inputStream;
     }
 
-//    @Override
-//    public DocumentSource createDocument(Context context, CoreSource core, String password) throws IOException {
-//        return core.newDocument(Util.toByteArray(inputStream), password);
-//    }
+
 
     @Override
     public CoreSource createCore(Context context, String password) throws IOException {
-        return null;
+        PdfiumCore pdfiumCore = new PdfiumCore(context);
+        return PdfCoreSource.create(pdfiumCore.newDocument(Util.toByteArray(inputStream), password), pdfiumCore);
     }
 }
