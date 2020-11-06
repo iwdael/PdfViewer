@@ -7,7 +7,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.hacknife.pdfviewer.PDFView;
 
-import com.hacknife.pdfviewer.core.mupdf.source.AssetSource;
+
+import com.hacknife.pdfviewer.core.pdfium.source.AssetSource;
 import com.hacknife.pdfviewer.scroll.DefaultScrollHandle;
 import com.hacknife.pdfviewer.util.FitPolicy;
 

@@ -6,7 +6,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.4.2'
-        classpath 'com.novoda:bintray-release:0.7.0'
+        classpath 'com.novoda:bintray-release:0.9.2'
     }
 }
 
@@ -15,5 +15,6 @@ allprojects {
         google()
         jcenter()
         maven { url 'http://maven.ghostscript.com' }
+        maven { url 'https://dl.bintray.com/hacknife/maven' }
     }
 }

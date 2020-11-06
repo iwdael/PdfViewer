@@ -35,15 +35,15 @@ import androidx.core.content.ContextCompat;
 import com.hacknife.pdfviewer.PDFView;
 import com.hacknife.pdfviewer.core.model.Bookmark;
 import com.hacknife.pdfviewer.core.model.Meta;
-import com.hacknife.pdfviewer.core.mupdf.source.AssetSource;
-import com.hacknife.pdfviewer.core.mupdf.source.UriSource;
+import com.hacknife.pdfviewer.core.pdfium.source.AssetSource;
+import com.hacknife.pdfviewer.core.pdfium.source.UriSource;
 import com.hacknife.pdfviewer.listener.OnLoadCompleteListener;
 import com.hacknife.pdfviewer.listener.OnLongPressListener;
 import com.hacknife.pdfviewer.listener.OnPageChangeListener;
 import com.hacknife.pdfviewer.listener.OnPageErrorListener;
 import com.hacknife.pdfviewer.scroll.DefaultScrollHandle;
 import com.hacknife.pdfviewer.util.FitPolicy;
-import com.shockwave.pdfium.PdfDocument;
+
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
