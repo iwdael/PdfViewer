@@ -15,5 +15,5 @@ android {
 
 dependencies {
     implementation project(path: ':core')
-    implementation 'com.artifex.mupdf:fitz:1.18.0'
+    api 'com.artifex.mupdf:fitz:1.18.0'
 }
