@@ -1,5 +1,5 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.novoda.bintray-release'
+apply plugin: 'com.github.dcendents.android-maven'
 apply from: './../config.gradle'
 android {
     buildToolsVersion buidConfig.buildToolsVersion
@@ -10,12 +10,4 @@ android {
         versionCode buidConfig.versionCode
         versionName buidConfig.versionName
     }
-}
-publish {
-    userOrg = bintray.userOrg
-    groupId = bintray.groupId
-    artifactId = 'core'
-    publishVersion = bintray.publishVersion
-    desc = bintray.desc
-    website = bintray.website
 }

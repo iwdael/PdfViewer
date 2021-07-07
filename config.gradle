@@ -10,7 +10,7 @@ ext {
     bintray = [
             'userOrg'       : 'hacknife',
             'groupId'       : 'com.hacknife.pdfviewer',
-            'publishVersion': '1.0',
+            'publishVersion': '1.1.1',
             'desc'          : '',
             'website'       : 'https://github.com/hacknife/pdfviewer',
     ]

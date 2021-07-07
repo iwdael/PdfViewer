@@ -17,11 +17,11 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'org.androidannotations:androidannotations-api:4.6.0'
     annotationProcessor "org.androidannotations:androidannotations:4.6.0"
-//    implementation project(':viewer')
-//    implementation project(':core')
-//    implementation project(':core-mupdf')
-//    implementation project(':core-pdfium')
-    implementation 'com.hacknife.pdfviewer:viewer:1.0'
+    implementation project(':viewer')
+    implementation project(':core')
+    implementation project(':core-mupdf')
+    implementation project(':core-pdfium')
+//    implementation 'com.hacknife.pdfviewer:viewer:1.0'
 //    implementation 'com.hacknife.pdfviewer:core-mupdf:1.0'
-    implementation 'com.hacknife.pdfviewer:core-pdfium:1.0'
+//    implementation 'com.hacknife.pdfviewer:core-pdfium:1.0'
 }

@@ -1,5 +1,5 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.novoda.bintray-release'
+apply plugin: 'com.github.dcendents.android-maven'
 apply from: './../config.gradle'
 
 android {
@@ -14,15 +14,7 @@ android {
 }
 
 dependencies {
-    compile project(path: ':core')
-    compile 'com.github.barteksc:pdfium-android:1.9.0'
+    implementation project(path: ':core')
+    implementation 'com.github.barteksc:pdfium-android:1.9.0'
 }
 
-publish {
-    userOrg = bintray.userOrg
-    groupId = bintray.groupId
-    artifactId = 'core-pdfium'
-    publishVersion = bintray.publishVersion
-    desc = bintray.desc
-    website = bintray.website
-}
