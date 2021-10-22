@@ -15,6 +15,6 @@ android {
 
 dependencies {
     implementation project(path: ':core')
-    implementation 'com.github.barteksc:pdfium-android:1.9.0'
+    api 'com.github.barteksc:pdfium-android:1.9.0'
 }
 
