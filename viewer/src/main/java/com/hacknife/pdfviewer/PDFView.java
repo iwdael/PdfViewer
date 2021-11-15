@@ -16,6 +16,7 @@
 package com.hacknife.pdfviewer;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -65,6 +66,8 @@ import com.hacknife.pdfviewer.core.model.SizeF;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static com.hacknife.pdfviewer.util.Constants.PRELOAD_OFFSET;
 
 /**
  * It supports animations, zoom, cache, and swipe.
@@ -296,9 +299,13 @@ public class PDFView extends RelativeLayout {
      * Construct the initial view
      */
 
+    protected final int preloadOffset;
+
     public PDFView(Context context, AttributeSet set) {
         super(context, set);
-
+        TypedArray ta = context.obtainStyledAttributes(set, R.styleable.PDFView);
+        preloadOffset = ta.getDimensionPixelSize(R.styleable.PDFView_preload, Utils.getDP(getContext(), PRELOAD_OFFSET));
+        ta.recycle();
         renderingHandlerThread = new HandlerThread("PDF renderer");
 
         if (isInEditMode()) {
