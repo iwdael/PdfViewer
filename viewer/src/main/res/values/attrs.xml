@@ -6,4 +6,7 @@
         <attr name="sb_indicatorTextColor" format="color|reference" />
         <attr name="sb_horizontal" format="boolean|reference" />
     </declare-styleable>
+    <declare-styleable name="PDFView">
+        <attr name="preload" format="dimension" />
+    </declare-styleable>
 </resources>

@@ -94,7 +94,7 @@ class PagesLoader {
 
     PagesLoader(PDFView pdfView) {
         this.pdfView = pdfView;
-        this.preloadOffset = Utils.getDP(pdfView.getContext(), PRELOAD_OFFSET);
+        this.preloadOffset = pdfView.preloadOffset;
     }
 
     private void getPageColsRows(GridSize grid, int pageIndex) {
