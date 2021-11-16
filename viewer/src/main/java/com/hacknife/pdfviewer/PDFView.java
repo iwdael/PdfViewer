@@ -298,12 +298,14 @@ public class PDFView extends RelativeLayout {
     /**
      * Construct the initial view
      */
-    protected final int preloadOffset;
+    protected final int preloadAfter;
+    protected final int preloadBefore;
 
     public PDFView(Context context, AttributeSet set) {
         super(context, set);
         TypedArray ta = context.obtainStyledAttributes(set, R.styleable.PDFView);
-        preloadOffset = ta.getDimensionPixelOffset(R.styleable.PDFView_preload, Utils.getDP(getContext(), PRELOAD_OFFSET));
+        preloadAfter = ta.getDimensionPixelOffset(R.styleable.PDFView_preloadAfter, Utils.getDP(getContext(), PRELOAD_OFFSET));
+        preloadBefore = ta.getDimensionPixelOffset(R.styleable.PDFView_preloadBefore, Utils.getDP(getContext(), PRELOAD_OFFSET));
         ta.recycle();
         renderingHandlerThread = new HandlerThread("PDF renderer");
 

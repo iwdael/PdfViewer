@@ -20,14 +20,12 @@ import android.graphics.RectF;
 import com.hacknife.pdfviewer.util.Constants;
 import com.hacknife.pdfviewer.util.MathUtils;
 
-import com.hacknife.pdfviewer.util.Utils;
 import com.hacknife.pdfviewer.core.model.SizeF;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import static com.hacknife.pdfviewer.util.Constants.Cache.CACHE_SIZE;
-import static com.hacknife.pdfviewer.util.Constants.PRELOAD_OFFSET;
 
 class PagesLoader {
 
@@ -40,7 +38,8 @@ class PagesLoader {
     private float partRenderWidth;
     private float partRenderHeight;
     private final RectF thumbnailRect = new RectF(0, 0, 1, 1);
-    private final int preloadOffset;
+    private final int preloadAfter;
+    private final int preloadBefore;
 
     private class Holder {
         int row;
@@ -94,7 +93,8 @@ class PagesLoader {
 
     PagesLoader(PDFView pdfView) {
         this.pdfView = pdfView;
-        this.preloadOffset = pdfView.preloadOffset;
+        this.preloadAfter = pdfView.preloadAfter;
+        this.preloadBefore = pdfView.preloadBefore;
     }
 
     private void getPageColsRows(GridSize grid, int pageIndex) {
@@ -227,11 +227,12 @@ class PagesLoader {
 
     private void loadVisible() {
         int parts = 0;
-        float scaledPreloadOffset = preloadOffset;
-        float firstXOffset = -xOffset + scaledPreloadOffset;
-        float lastXOffset = -xOffset - pdfView.getWidth() - scaledPreloadOffset;
-        float firstYOffset = -yOffset + scaledPreloadOffset;
-        float lastYOffset = -yOffset - pdfView.getHeight() - scaledPreloadOffset;
+        float scaledPreloadBefore = preloadBefore;
+        float scaledPreloadAfter = preloadAfter;
+        float firstXOffset = -xOffset + scaledPreloadBefore;
+        float lastXOffset = -xOffset - pdfView.getWidth() - scaledPreloadAfter;
+        float firstYOffset = -yOffset + scaledPreloadBefore;
+        float lastYOffset = -yOffset - pdfView.getHeight() - scaledPreloadAfter;
 
         List<RenderRange> rangeList = getRenderRangeList(firstXOffset, firstYOffset, lastXOffset, lastYOffset);
 

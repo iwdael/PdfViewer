@@ -7,6 +7,7 @@
         <attr name="sb_horizontal" format="boolean|reference" />
     </declare-styleable>
     <declare-styleable name="PDFView">
-        <attr name="preload" format="dimension" />
+        <attr name="preloadBefore" format="dimension" />
+        <attr name="preloadAfter" format="dimension" />
     </declare-styleable>
 </resources>
