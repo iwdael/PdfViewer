@@ -2,6 +2,7 @@ package com.hacknife.pdfviewer.core.pdfium.kernel;
 
 import android.graphics.Bitmap;
 import android.graphics.RectF;
+import android.util.Log;
 
 import com.hacknife.pdfviewer.core.CoreSource;
 import com.hacknife.pdfviewer.core.model.Bookmark;

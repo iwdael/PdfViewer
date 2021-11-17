@@ -675,18 +675,17 @@ public class PDFView extends RelativeLayout {
         if (state != State.SHOWN) {
             return;
         }
-
+        int[] rangePage = displayRangePage();
         // Moves the canvas before drawing any element
         float currentXOffset = this.currentXOffset;
         float currentYOffset = this.currentYOffset;
         canvas.translate(currentXOffset, currentYOffset);
         // Draws thumbnails
-        for (PagePart part : cacheManager.getThumbnails()) {
+        for (PagePart part : cacheManager.getThumbnails(rangePage)) {
             drawPart(canvas, part);
-
         }
         // Draws parts
-        for (PagePart part : cacheManager.getPageParts()) {
+        for (PagePart part : cacheManager.getPageParts(rangePage)) {
             drawPart(canvas, part);
             if (callbacks.getOnDrawAll() != null
                     && !onDrawPagesNums.contains(part.getPage())) {
@@ -1129,6 +1128,31 @@ public class PDFView extends RelativeLayout {
         } else {
             return len < getWidth();
         }
+    }
+
+    public int[] displayRangePage() {
+        float xOffset = -MathUtils.max(getCurrentXOffset(), 0);
+        float yOffset = -MathUtils.max(getCurrentYOffset(), 0);
+        float scaledPreloadBefore = 40;
+        float scaledPreloadAfter = 40;
+        float firstXOffset = -xOffset + scaledPreloadBefore;
+        float lastXOffset = -xOffset - getWidth() - scaledPreloadAfter;
+        float firstYOffset = -yOffset + scaledPreloadBefore;
+        float lastYOffset = -yOffset - getHeight() - scaledPreloadAfter;
+
+
+        float fixedFirstXOffset = -MathUtils.max(firstXOffset, 0);
+        float fixedFirstYOffset = -MathUtils.max(firstYOffset, 0);
+
+        float fixedLastXOffset = -MathUtils.max(lastXOffset, 0);
+        float fixedLastYOffset = -MathUtils.max(lastYOffset, 0);
+
+        float offsetFirst = isSwipeVertical() ? fixedFirstYOffset : fixedFirstXOffset;
+        float offsetLast = isSwipeVertical() ? fixedLastYOffset : fixedLastXOffset;
+
+        int firstPage = pdfFile.getPageAtOffset(offsetFirst, getZoom());
+        int lastPage = pdfFile.getPageAtOffset(offsetLast, getZoom());
+        return new int[]{firstPage, lastPage};
     }
 
     public void fitToWidth(int page) {

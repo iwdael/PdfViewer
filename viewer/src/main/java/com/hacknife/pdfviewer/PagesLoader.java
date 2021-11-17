@@ -16,6 +16,7 @@
 package com.hacknife.pdfviewer;
 
 import android.graphics.RectF;
+import android.util.Log;
 
 import com.hacknife.pdfviewer.util.Constants;
 import com.hacknife.pdfviewer.util.MathUtils;
@@ -286,9 +287,9 @@ class PagesLoader {
         RectF pageRelativeBounds = new RectF(relX, relY, relX + relWidth, relY + relHeight);
 
         if (renderWidth > 0 && renderHeight > 0) {
-            if (!pdfView.cacheManager.upPartIfContained(page, pageRelativeBounds, cacheOrder)) {
+            if (!pdfView.cacheManager.upPartIfContained(page, pageRelativeBounds)) {
                 pdfView.renderingHandler.addRenderingTask(page, renderWidth, renderHeight,
-                        pageRelativeBounds, false, cacheOrder, pdfView.isBestQuality(),
+                        pageRelativeBounds, false, pdfView.isBestQuality(),
                         pdfView.isAnnotationRendering());
             }
 
@@ -305,7 +306,7 @@ class PagesLoader {
         if (!pdfView.cacheManager.containsThumbnail(page, thumbnailRect)) {
             pdfView.renderingHandler.addRenderingTask(page,
                     thumbnailWidth, thumbnailHeight, thumbnailRect,
-                    true, 0, pdfView.isBestQuality(), pdfView.isAnnotationRendering());
+                    true, pdfView.isBestQuality(), pdfView.isAnnotationRendering());
         }
     }
 

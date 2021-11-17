@@ -50,8 +50,7 @@ public class PdfDocument {
     }
 
     public static PdfDocument openDocument(byte[] buffer, String magic) {
-        Log.v("dzq", "openDocument: buffer " + buffer.length);
-        return new PdfDocument(Document.openDocument(buffer, magic));
+         return new PdfDocument(Document.openDocument(buffer, magic));
     }
 
     public static PdfDocument openDocument(byte[] buffer, String magic, byte[] accelerator) {
