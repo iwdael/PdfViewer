@@ -21,7 +21,4 @@ dependencies {
     implementation project(':core')
     implementation project(':core-mupdf')
     implementation project(':core-pdfium')
-//    implementation 'com.hacknife.pdfviewer:viewer:1.0'
-//    implementation 'com.hacknife.pdfviewer:core-mupdf:1.0'
-//    implementation 'com.hacknife.pdfviewer:core-pdfium:1.0'
 }
