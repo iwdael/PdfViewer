@@ -36,7 +36,7 @@
 ```
         val pdfView = findViewById(R.id.pdfView);
         val source = AssetSource("sample.pdf") //播放源类型，以及加载器可自定义
-        pdfView.fromSource()
+        pdfView.fromSource(source)
                 .defaultPage(0)
                 .enableAnnotationRendering(true)
                 .swipeHorizontal(false)
